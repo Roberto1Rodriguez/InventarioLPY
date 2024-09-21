@@ -4,17 +4,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
-    <EditText
-        android:id="@+id/etNombreEmpleado"
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Nombre del empleado"/>
+        android:text="Seleccionar empleado" />
 
-    <EditText
-        android:id="@+id/etNumeroContacto"
+    <Spinner
+        android:id="@+id/spinnerEmpleados"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Número de contacto"/>
+        android:layout_height="wrap_content" />
 
     <!-- SignaturePad para capturar la firma -->
     <com.github.gcacace.signaturepad.views.SignaturePad

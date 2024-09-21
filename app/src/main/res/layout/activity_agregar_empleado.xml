@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+<EditText
+    android:id="@+id/etNombreEmpleado"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:hint="Nombre del empleado" />
+
+<EditText
+android:id="@+id/etContacto"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:hint="Contacto" />
+
+<EditText
+android:id="@+id/etClaveAcceso"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:hint="Clave de acceso"
+android:inputType="textPassword" />
+
+<Button
+android:id="@+id/btnAgregarEmpleado"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Agregar empleado"
+android:layout_gravity="center_horizontal" />
+    </LinearLayout>

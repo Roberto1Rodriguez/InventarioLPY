@@ -30,5 +30,18 @@
         android:layout_height="wrap_content"
         android:text="Ver PDFs Generados"
         android:layout_gravity="center_horizontal" />
+    <Button
+        android:id="@+id/btnAgregarEmpleado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Agregar Empleado"
+        android:layout_gravity="center_horizontal" />
+
+    <Button
+        android:id="@+id/btnVerEmpleados"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ver Empleados"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

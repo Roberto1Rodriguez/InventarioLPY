@@ -35,11 +35,15 @@
         <activity android:name=".ListaHerramientasActivity" />
 
         <!-- PrestamoHerramientaActivity: Para el préstamo de herramientas y firmas -->
-        <activity android:name=".PrestamoHerramientaActivity" />
         <activity android:name=".DevolucionActivity" />
         <activity android:name=".ListaPrestamosActivity" />
-<activity android:name=".SolicitarPrestamoActivity"/>
+        <activity android:name=".SolicitarPrestamoActivity"/>
         <activity android:name=".ListaPDFsActivity"/>
+        <activity android:name=".AgregarEmpleadoActivity"/>
+        <activity android:name=".ListaEmpleadosActivity"/>
+
+
+
         <provider
         android:name="androidx.core.content.FileProvider"
         android:authorities="${applicationId}.provider"

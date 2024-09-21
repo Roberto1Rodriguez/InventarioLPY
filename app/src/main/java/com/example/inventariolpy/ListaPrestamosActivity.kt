@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 class ListaPrestamosActivity : AppCompatActivity() {
     private lateinit var btnVerPrestadas: Button
     private lateinit var btnVerDevueltas: Button
+
     // Método que se llama cuando la actividad vuelve a estar activa
     override fun onResume() {
         super.onResume()
@@ -27,7 +28,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
 
         val listView: ListView = findViewById(R.id.listViewPrestamos)
         btnVerPrestadas = findViewById(R.id.btnVerPrestadas)
-        btnVerDevueltas= findViewById(R.id.btnVerDevueltas)
+        btnVerDevueltas = findViewById(R.id.btnVerDevueltas)
 
         // Cargar todos los préstamos por defecto
         cargarListaPrestamos(listView, "")
@@ -53,22 +54,17 @@ class ListaPrestamosActivity : AppCompatActivity() {
             if (filtroEstado.isEmpty()) null else "${DatabaseHelper.COL_ESTADO_PRESTAMO} = ?"
         val selectionArgs = if (filtroEstado.isEmpty()) null else arrayOf(filtroEstado)
 
-        val projection = arrayOf(
-            DatabaseHelper.COL_ID,
-            DatabaseHelper.COL_NOMBRE_EMPLEADO,
-            DatabaseHelper.COL_HERRAMIENTA_ID,
-            DatabaseHelper.COL_FECHA_PRESTAMO,
-            DatabaseHelper.COL_ESTADO_PRESTAMO
-        )
-        val cursor: Cursor = db.query(
-            DatabaseHelper.TABLE_PRESTAMOS,
-            projection,
-            selection,
-            selectionArgs,
-            null,
-            null,
-            null
-        )
+        // Consulta con un JOIN para obtener el nombre del empleado desde la tabla empleados
+        val query = """
+        SELECT prestamos.${DatabaseHelper.COL_ID}, empleados.${DatabaseHelper.COL_NOMBRE_EMPLEADO}, 
+               prestamos.${DatabaseHelper.COL_HERRAMIENTA_ID}, prestamos.${DatabaseHelper.COL_FECHA_PRESTAMO}, prestamos.${DatabaseHelper.COL_ESTADO_PRESTAMO}
+        FROM ${DatabaseHelper.TABLE_PRESTAMOS} 
+        JOIN ${DatabaseHelper.TABLE_EMPLEADOS} 
+        ON prestamos.${DatabaseHelper.COL_EMPLEADO_ID} = empleados.${DatabaseHelper.COL_ID}
+        ${if (selection != null) "WHERE $selection" else ""}
+    """.trimIndent()
+
+        val cursor: Cursor = db.rawQuery(query, selectionArgs)
 
         val prestamos = ArrayList<String>()
         val prestamoIds = ArrayList<Int>()
