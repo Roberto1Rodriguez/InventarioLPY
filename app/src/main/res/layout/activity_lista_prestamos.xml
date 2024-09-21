@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Filtros para ver herramientas prestadas o devueltas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal">
+
+        <Button
+            android:id="@+id/btnVerPrestadas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ver Prestadas"
+            android:layout_marginEnd="16dp"/>
+
+        <Button
+            android:id="@+id/btnVerDevueltas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ver Devueltas" />
+    </LinearLayout>
+
+    <!-- Lista de préstamos -->
+    <ListView
+        android:id="@+id/listViewPrestamos"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:dividerHeight="1dp"
+        android:divider="@android:color/darker_gray"/>
+</LinearLayout>

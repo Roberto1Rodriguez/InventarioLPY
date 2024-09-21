@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+    <EditText
+        android:id="@+id/etNombreEmpleado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre del empleado"/>
+
+    <EditText
+        android:id="@+id/etNumeroContacto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Número de contacto"/>
+
+    <!-- SignaturePad para capturar la firma -->
+    <com.github.gcacace.signaturepad.views.SignaturePad
+        android:id="@+id/signaturePad"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:background="@android:color/darker_gray"/>
+
+    <Button
+        android:id="@+id/btnLimpiarFirma"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Limpiar Firma"/>
+
+    <Button
+        android:id="@+id/btnConfirmarPrestamo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Confirmar Préstamo"/>
+</LinearLayout>
