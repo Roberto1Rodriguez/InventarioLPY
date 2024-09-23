@@ -10,14 +10,14 @@ import androidx.appcompat.app.AppCompatActivity
 class DevolucionActivity : AppCompatActivity() {
 
     private var prestamoId: Int = 0
-    private var herramientaId: Int = 0
+    private lateinit var herramientas: List<Herramienta>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_devolucion)
 
         prestamoId = intent.getIntExtra("prestamoId", 0)
-        herramientaId = intent.getIntExtra("herramientaId", 0)
+        herramientas = intent.getParcelableArrayListExtra("herramientas") ?: listOf()
 
         val etReporteDevolucion: EditText = findViewById(R.id.etReporteDevolucion)
         val btnConfirmarDevolucion: Button = findViewById(R.id.btnConfirmarDevolucion)
@@ -38,13 +38,15 @@ class DevolucionActivity : AppCompatActivity() {
             put(DatabaseHelper.COL_FECHA_DEVOLUCION, System.currentTimeMillis().toString())
             put(DatabaseHelper.COL_REPORTE_DEVOLUCION, reporteDevolucion)
         }
-        db.update(DatabaseHelper.TABLE_PRESTAMOS, valuesPrestamo, "${DatabaseHelper.COL_ID}=?", arrayOf(prestamoId.toString()))
+        db.update(DatabaseHelper.TABLE_PRESTAMOS, valuesPrestamo, "${DatabaseHelper.COL_ID_PRESTAMO}=?", arrayOf(prestamoId.toString()))
 
-        // Actualizar la herramienta a "Disponible"
-        val valuesHerramienta = ContentValues().apply {
-            put(DatabaseHelper.COL_ESTADO, "Disponible")
+        // Actualizar todas las herramientas a "Disponible"
+        herramientas.forEach { herramienta ->
+            val valuesHerramienta = ContentValues().apply {
+                put(DatabaseHelper.COL_ESTADO, "Disponible")
+            }
+            db.update(DatabaseHelper.TABLE_HERRAMIENTAS, valuesHerramienta, "${DatabaseHelper.COL_ID_HERRAMIENTA}=?", arrayOf(herramienta.id.toString()))
         }
-        db.update(DatabaseHelper.TABLE_HERRAMIENTAS, valuesHerramienta, "${DatabaseHelper.COL_ID}=?", arrayOf(herramientaId.toString()))
 
         Toast.makeText(this, "Devolución registrada con éxito", Toast.LENGTH_SHORT).show()
         finish()

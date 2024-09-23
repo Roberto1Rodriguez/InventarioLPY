@@ -12,30 +12,44 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class ListaHerramientasActivity : AppCompatActivity(){
+class ListaHerramientasActivity : AppCompatActivity() {
+
+    private lateinit var fabSolicitarPrestamo: FloatingActionButton
+    private lateinit var recyclerView: RecyclerView
+    private val herramientasSeleccionadas = mutableListOf<Herramienta>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lista_herramientas)
 
-        val listView: ListView = findViewById(R.id.listViewHerramientas)
+        fabSolicitarPrestamo = findViewById(R.id.fabSolicitarPrestamo)
+        recyclerView = findViewById(R.id.recyclerViewHerramientas)
 
-        // Cargar datos de la base de datos por primera vez
-        cargarListaHerramientas(listView)
+        // Configurar el RecyclerView con el adaptador
+        cargarListaHerramientas()
+
+        // Configurar el botón flotante
+        fabSolicitarPrestamo.setOnClickListener {
+            if (herramientasSeleccionadas.isNotEmpty()) {
+                iniciarSolicitudPrestamo()
+            } else {
+                Toast.makeText(this, "Selecciona al menos una herramienta", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
-    // Método que se llama cuando la actividad vuelve a estar activa
+
+    // Recargar la lista de herramientas cuando la actividad vuelve a estar activa
     override fun onResume() {
         super.onResume()
-
-        // Recargar los datos al volver a la actividad
-        val listView: ListView = findViewById(R.id.listViewHerramientas)
-        cargarListaHerramientas(listView)
+        cargarListaHerramientas()
     }
-    private fun cargarListaHerramientas(listView: ListView) {
 
+    // Cargar la lista de herramientas desde la base de datos
+    private fun cargarListaHerramientas() {
         val dbHelper = DatabaseHelper(this)
         val db = dbHelper.readableDatabase
 
-        val projection = arrayOf(DatabaseHelper.COL_NOMBRE, DatabaseHelper.COL_ESTADO, DatabaseHelper.COL_ID)
+        val projection = arrayOf(DatabaseHelper.COL_NOMBRE, DatabaseHelper.COL_ESTADO, DatabaseHelper.COL_ID_HERRAMIENTA)
         val cursor: Cursor = db.query(
             DatabaseHelper.TABLE_HERRAMIENTAS,
             projection,
@@ -46,32 +60,29 @@ class ListaHerramientasActivity : AppCompatActivity(){
             null
         )
 
-        val herramientas = ArrayList<String>()
-        val herramientaIds = ArrayList<Int>()
-
+        val herramientas = mutableListOf<Herramienta>()
         while (cursor.moveToNext()) {
             val nombre = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE))
             val estado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO))
-            val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID))
-            herramientas.add("$nombre - $estado")
-            herramientaIds.add(id) // Guardamos el ID para futuros usos
+            val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_HERRAMIENTA))
+            val herramienta = Herramienta(id, nombre, estado)
+            herramientas.add(herramienta)
         }
         cursor.close()
 
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, herramientas)
-        listView.adapter = adapter
-
-        listView.onItemClickListener = AdapterView.OnItemClickListener { parent, view, position, id ->
-            val selectedItem = herramientas[position]
-            val selectedId = herramientaIds[position]
-
-            if (selectedItem.contains("Prestada")) {
-                Toast.makeText(this, "Esta herramienta está prestada y no se puede seleccionar", Toast.LENGTH_SHORT).show()
-            } else {
-                val intent = Intent(this, SolicitarPrestamoActivity::class.java)
-                intent.putExtra("herramientaId", selectedId)
-                startActivity(intent)
-            }
+        // Configurar el adaptador con la lista de herramientas
+        val adapter = HerramientaAdapter(herramientas) { seleccionadas ->
+            herramientasSeleccionadas.clear()
+            herramientasSeleccionadas.addAll(seleccionadas)
         }
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(this)
+    }
+
+    // Iniciar la actividad de préstamo, pasando la lista de herramientas seleccionadas
+    private fun iniciarSolicitudPrestamo() {
+        val intent = Intent(this, SolicitarPrestamoActivity::class.java)
+        intent.putParcelableArrayListExtra("herramientasSeleccionadas", ArrayList(herramientasSeleccionadas))
+        startActivity(intent)
     }
 }
