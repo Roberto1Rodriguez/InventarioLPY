@@ -1,14 +1,45 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:orientation="vertical">
 
+    <!-- Contenedor para SearchView y botón de agregar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_margin="16dp">
+
+        <!-- SearchView para búsqueda -->
+        <SearchView
+            android:id="@+id/searchViewEmpleados"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:queryHint="Buscar empleado"
+            android:iconifiedByDefault="false" />
+
+        <!-- Botón para agregar empleado -->
+        <ImageButton
+            android:id="@+id/btnAgregarEmpleado"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Agregar Empleado"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_input_add"
+            app:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <!-- ListView para mostrar la lista de empleados -->
     <ListView
         android:id="@+id/listViewEmpleados"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:divider="@android:color/darker_gray"
         android:dividerHeight="1dp" />
 </LinearLayout>

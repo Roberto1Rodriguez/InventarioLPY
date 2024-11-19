@@ -23,7 +23,6 @@ class ListaPrestamosActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-
         // Recargar los datos al volver a la actividad
         val listView: ListView = findViewById(R.id.listViewPrestamos)
         cargarListaPrestamos(listView, "")
@@ -38,7 +37,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
         btnVerDevueltas = findViewById(R.id.btnVerDevueltas)
 
         // Cargar todos los préstamos por defecto
-        cargarListaPrestamos(listView, "")
+        cargarListaPrestamos(listView, "Activo")
 
         // Al hacer clic en "Ver Prestadas", cargar solo las prestadas
         btnVerPrestadas.setOnClickListener {
@@ -54,20 +53,31 @@ class ListaPrestamosActivity : AppCompatActivity() {
         listView.setOnItemClickListener { _, _, position, _ ->
             if (position >= 0 && position < prestamoIds.size) {
                 val prestamoId = prestamoIds[position]
+                val estadoPrestamo = getEstadoPrestamo(prestamoId)
 
-                // Obtener todas las herramientas asociadas al préstamo desde la tabla intermedia
-                val herramientas = obtenerHerramientasPorPrestamo(prestamoId)
+                if (estadoPrestamo == "Devuelto") {
+                    // Si el préstamo ya fue devuelto, no hacer nada
+                    Toast.makeText(this, "Este préstamo ya ha sido devuelto.", Toast.LENGTH_SHORT)
+                        .show()
+                } else {
+                    // Obtener todas las herramientas asociadas al préstamo desde la tabla intermedia
+                    val herramientas = obtenerHerramientasPorPrestamo(prestamoId)
 
-                // Iniciar la actividad de devolución pasando los IDs del préstamo y las herramientas
-                val intent = Intent(this, DevolucionActivity::class.java)
-                intent.putExtra("prestamoId", prestamoId)
-                intent.putParcelableArrayListExtra(
-                    "herramientas",
-                    ArrayList(herramientas)
-                ) // Enviar la lista de herramientas
-                startActivity(intent)
+                    // Obtener nombre del empleado y firma
+                    val (nombreEmpleado, firmaEmpleado) = obtenerDatosEmpleadoPorPrestamo(prestamoId)
+
+                    // Iniciar la actividad de devolución pasando los IDs del préstamo y las herramientas
+                    val intent = Intent(this, DevolucionActivity::class.java).apply {
+                        putExtra("prestamoId", prestamoId)
+                        putParcelableArrayListExtra("herramientas", ArrayList(herramientas))
+                        putExtra("nombreEmpleado", nombreEmpleado)
+                        putExtra("firmaEmpleado", firmaEmpleado) // Pasar firma como ByteArray
+                        putExtra("empleadoNfcId", getEmpleadoNfcId(prestamoId)) // Pasar NFC ID
+                        putExtra("empleadoQrId", getEmpleadoQrId(prestamoId)) // Pasar QR ID
+                    }
+                    startActivity(intent)
+                }
             } else {
-                // Mostrar mensaje de error si las listas están vacías o el índice es inválido
                 Toast.makeText(
                     this,
                     "Error: No se encontró el préstamo seleccionado.",
@@ -77,30 +87,172 @@ class ListaPrestamosActivity : AppCompatActivity() {
         }
     }
 
-        // Función para obtener todas las herramientas asociadas a un préstamo
-        private fun obtenerHerramientasPorPrestamo(prestamoId: Int): List<Herramienta> {
+        // Función para obtener datos del empleado
+        private fun obtenerDatosEmpleadoPorPrestamo(prestamoId: Int): Pair<String, ByteArray?> {
             val dbHelper = DatabaseHelper(this)
             val db = dbHelper.readableDatabase
 
             val query = """
+        SELECT e.${DatabaseHelper.COL_NOMBRE_EMPLEADO}, e.${DatabaseHelper.COL_FIRMA}
+        FROM ${DatabaseHelper.TABLE_EMPLEADOS} e
+        JOIN ${DatabaseHelper.TABLE_PRESTAMOS} p ON e.${DatabaseHelper.COL_ID_EMPLEADO} = p.${DatabaseHelper.COL_EMPLEADO_ID}
+        WHERE p.${DatabaseHelper.COL_ID_PRESTAMO} = ?
+    """
+            val cursor = db.rawQuery(query, arrayOf(prestamoId.toString()))
+
+            var nombreEmpleado = ""
+            var firmaEmpleado: ByteArray? = null
+            if (cursor.moveToFirst()) {
+                nombreEmpleado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE_EMPLEADO))
+                firmaEmpleado = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_FIRMA))
+            }
+            cursor.close()
+
+            return Pair(nombreEmpleado, firmaEmpleado)
+        }
+
+    // Función para obtener el estado del préstamo
+    private fun getEstadoPrestamo(prestamoId: Int): String {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
+        var estado = ""
+
+        val cursor = db.query(
+            DatabaseHelper.TABLE_PRESTAMOS,
+            arrayOf(DatabaseHelper.COL_ESTADO_PRESTAMO),
+            "${DatabaseHelper.COL_ID_PRESTAMO} = ?",
+            arrayOf(prestamoId.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            estado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO_PRESTAMO))
+        }
+        cursor.close()
+
+        return estado
+    }
+
+    private fun getEmpleadoNfcId(prestamoId: Int): String? {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
+        var nfcId: String? = null
+
+        val cursor = db.query(
+            DatabaseHelper.TABLE_PRESTAMOS,
+            arrayOf(DatabaseHelper.COL_EMPLEADO_ID), // Obtener el ID del empleado
+            "${DatabaseHelper.COL_ID_PRESTAMO} = ?",
+            arrayOf(prestamoId.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            val empleadoId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EMPLEADO_ID))
+            nfcId = getEmpleadoNfcIdByEmpleadoId(empleadoId) // Obtener NFC ID usando el empleado ID
+        }
+        cursor.close()
+
+        return nfcId
+    }
+
+    private fun getEmpleadoNfcIdByEmpleadoId(empleadoId: Int): String? {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
+        var nfcId: String? = null
+
+        val cursor = db.query(
+            DatabaseHelper.TABLE_EMPLEADOS,
+            arrayOf(DatabaseHelper.COL_NFC_ID), // Obtener el NFC ID del empleado
+            "${DatabaseHelper.COL_ID_EMPLEADO} = ?",
+            arrayOf(empleadoId.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            nfcId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NFC_ID))
+        }
+        cursor.close()
+
+        return nfcId
+    }
+
+    private fun getEmpleadoQrId(prestamoId: Int): String? {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
+        var qrId: String? = null
+
+        val cursor = db.query(
+            DatabaseHelper.TABLE_PRESTAMOS,
+            arrayOf(DatabaseHelper.COL_EMPLEADO_ID), // Obtener el ID del empleado
+            "${DatabaseHelper.COL_ID_PRESTAMO} = ?",
+            arrayOf(prestamoId.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            val empleadoId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_EMPLEADO_ID))
+            qrId = getEmpleadoQrIdByEmpleadoId(empleadoId) // Obtener QR ID usando el empleado ID
+        }
+        cursor.close()
+
+        return qrId
+    }
+
+    private fun getEmpleadoQrIdByEmpleadoId(empleadoId: Int): String? {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
+        var qrId: String? = null
+
+        val cursor = db.query(
+            DatabaseHelper.TABLE_EMPLEADOS,
+            arrayOf(DatabaseHelper.COL_QR_IDENTIFICADOR), // Obtener el QR ID del empleado
+            "${DatabaseHelper.COL_ID_EMPLEADO} = ?",
+            arrayOf(empleadoId.toString()),
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            qrId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_QR_IDENTIFICADOR))
+        }
+        cursor.close()
+
+        return qrId
+    }
+
+    // Función para obtener todas las herramientas asociadas a un préstamo
+    private fun obtenerHerramientasPorPrestamo(prestamoId: Int): List<Herramienta> {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
+
+        val query = """
         SELECT h.${DatabaseHelper.COL_ID_HERRAMIENTA}, h.${DatabaseHelper.COL_NOMBRE}, h.${DatabaseHelper.COL_ESTADO}
         FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
         JOIN ${DatabaseHelper.TABLE_HERRAMIENTAS} h ON ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
         WHERE ph.${DatabaseHelper.COL_PRESTAMO_ID} = ?
     """
-            val cursor = db.rawQuery(query, arrayOf(prestamoId.toString()))
+        val cursor = db.rawQuery(query, arrayOf(prestamoId.toString()))
 
-            val herramientas = mutableListOf<Herramienta>()
-            while (cursor.moveToNext()) {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_HERRAMIENTA))
-                val nombre = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE))
-                val estado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO))
-                herramientas.add(Herramienta(id, nombre, estado))
-            }
-            cursor.close()
-
-            return herramientas
+        val herramientas = mutableListOf<Herramienta>()
+        while (cursor.moveToNext()) {
+            val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_HERRAMIENTA))
+            val nombre = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE))
+            val estado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO))
+            herramientas.add(Herramienta(id, nombre, estado))
         }
+        cursor.close()
+
+        return herramientas
+    }
 
     private fun cargarListaPrestamos(listView: ListView, filtroEstado: String) {
         val dbHelper = DatabaseHelper(this)
@@ -111,8 +263,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
         herramientaIds.clear()
 
         // Definir la consulta en función del filtro
-        val selection =
-            if (filtroEstado.isEmpty()) null else "${DatabaseHelper.COL_ESTADO_PRESTAMO} = ?"
+        val selection = if (filtroEstado.isEmpty()) null else "${DatabaseHelper.COL_ESTADO_PRESTAMO} = ?"
         val selectionArgs = if (filtroEstado.isEmpty()) null else arrayOf(filtroEstado)
 
         // Consulta con JOIN y GROUP_CONCAT para obtener múltiples herramientas en una fila
@@ -164,6 +315,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
         }
 
     }
+
     // Función para convertir milisegundos a un formato de fecha legible
     private fun convertirFechaLegible(millis: Long): String {
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())

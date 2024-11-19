@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".EditarEmpleadoActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Campo de nombre -->
+        <EditText
+            android:id="@+id/etNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre"
+            android:inputType="textPersonName"
+            android:padding="12dp" />
+
+        <!-- Campo de dirección -->
+        <EditText
+            android:id="@+id/etDireccion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Dirección"
+            android:inputType="textPostalAddress"
+            android:padding="12dp" />
+
+        <!-- Campo de CURP -->
+        <EditText
+            android:id="@+id/etCurp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="CURP"
+            android:inputType="text"
+            android:padding="12dp" />
+
+        <!-- Campo de RFC -->
+        <EditText
+            android:id="@+id/etRfc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="RFC"
+            android:inputType="text"
+            android:padding="12dp" />
+
+        <!-- Campo de Contacto -->
+        <EditText
+            android:id="@+id/etContacto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Contacto"
+            android:inputType="phone"
+            android:padding="12dp" />
+
+        <!-- Imagen de foto del empleado -->
+        <ImageView
+            android:id="@+id/imgFotoEmpleado"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="16dp"
+            android:src="@drawable/ic_placeholder"
+            android:scaleType="centerCrop" />
+
+        <!-- Botón para capturar foto -->
+        <Button
+            android:id="@+id/btnCapturarFoto"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Capturar Foto"
+            android:layout_marginTop="8dp" />
+
+        <!-- Botón para capturar firma -->
+        <Button
+            android:id="@+id/btnCapturarFirma"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Capturar Firma"
+            android:layout_marginTop="8dp" />
+
+        <!-- Botón para autenticación NFC/QR -->
+        <Button
+            android:id="@+id/btnAutenticacion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Autenticación NFC/QR"
+            android:layout_marginTop="8dp" />
+
+        <!-- Botón para guardar empleado -->
+        <Button
+            android:id="@+id/btnGuardarEmpleado"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar Empleado"
+            android:layout_marginTop="16dp" />
+    </LinearLayout>
+</ScrollView>

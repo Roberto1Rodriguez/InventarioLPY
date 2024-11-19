@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Campo de Nombre -->
+        <EditText
+            android:id="@+id/etNombre"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre" />
+
+        <!-- Campo de Marca -->
+        <EditText
+            android:id="@+id/etMarca"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Marca" />
+
+        <!-- Campo de Modelo -->
+        <EditText
+            android:id="@+id/etModelo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Modelo" />
+
+        <!-- Campo de Serie -->
+        <EditText
+            android:id="@+id/etSerie"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Serie" />
+
+        <!-- Campo de Código Interno -->
+        <EditText
+            android:id="@+id/etCodigoInterno"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Código Interno" />
+
+        <!-- Campo de Descripción -->
+        <EditText
+            android:id="@+id/etDescripcion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Descripción" />
+
+        <!-- Campo de Precio -->
+        <EditText
+            android:id="@+id/etPrecio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Precio"
+            android:inputType="numberDecimal" />
+
+        <Spinner
+
+            android:id="@+id/spinnerEstadoHerramienta"
+            android:layout_width="match_parent"
+            android:layout_height="37dp"
+            android:entries="@array/estados_herramienta" />
+
+
+        <!-- Foto de la herramienta -->
+        <ImageView
+            android:id="@+id/imgFotoHerramienta"
+            android:layout_width="150dp"
+            android:layout_margin="10dp"
+            android:layout_height="150dp"
+            android:scaleType="centerCrop"
+            android:layout_gravity="center"
+            android:contentDescription="Foto de la herramienta" />
+
+        <!-- Botón para cambiar la foto -->
+        <Button
+            android:id="@+id/btnCambiarFoto"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Cambiar Foto" />
+
+        <!-- Botón para guardar -->
+        <Button
+            android:id="@+id/btnGuardar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar Cambios" />
+
+    </LinearLayout>
+</ScrollView>

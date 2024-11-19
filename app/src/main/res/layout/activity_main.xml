@@ -4,11 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp">
-    <Button
-        android:id="@+id/btnRegistrarHerramienta"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Registrar Herramienta"/>
 
     <Button
         android:id="@+id/btnListaHerramientas"
@@ -25,23 +20,18 @@
         android:text="Ver Lista de Préstamos"/>
 
     <Button
-        android:id="@+id/btnVerPDFs"
+        android:id="@+id/btnVerPagares"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ver PDFs Generados"
+        android:text="Ver Pagares"
         android:layout_gravity="center_horizontal" />
-    <Button
-        android:id="@+id/btnAgregarEmpleado"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Agregar Empleado"
-        android:layout_gravity="center_horizontal" />
+
 
     <Button
         android:id="@+id/btnVerEmpleados"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ver Empleados"
+        android:text="Ver Lista de Empleados"
         android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

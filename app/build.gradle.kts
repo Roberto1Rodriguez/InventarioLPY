@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.inventariolpy"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -50,6 +50,12 @@ android {
 }
 
 dependencies {
+    implementation ("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation ("com.google.zxing:core:3.3.3")
+    implementation ("org.apache.poi:poi:5.2.3")
+
+
+
     implementation (libs.signature.pad)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)

@@ -1,0 +1,45 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/tvNombreHerramienta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nombre de la herramienta"
+        android:textSize="16sp"
+        android:paddingBottom="8dp" />
+
+    <RadioGroup
+        android:id="@+id/rgEstadoHerramienta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <RadioButton
+            android:id="@+id/rbDevuelta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Devuelta" />
+
+        <RadioButton
+            android:id="@+id/rbNoDevuelta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No Devuelta" />
+
+        <RadioButton
+            android:id="@+id/rbRota"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rota" />
+
+        <RadioButton
+            android:id="@+id/rbPerdida"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Perdida" />
+    </RadioGroup>
+</LinearLayout>

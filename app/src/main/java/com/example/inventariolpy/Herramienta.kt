@@ -6,8 +6,15 @@ import android.os.Parcelable
 data class Herramienta(
     val id: Int,
     val nombre: String,
-    val estado: String
-) : Parcelable {
+    var estado: String, // Permite la modificación del estado
+    val marca: String? = null,
+    val modelo: String? = null,
+    val serie: String? = null,
+    val codigoInterno: String? = null,
+    val fotoHerramienta: ByteArray? = null, // Para imágenes
+    val descripcion: String? = null,
+    val precio: Double = 0.0 // Por defecto es 0 si no se proporciona un valor
+): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString() ?: "",
