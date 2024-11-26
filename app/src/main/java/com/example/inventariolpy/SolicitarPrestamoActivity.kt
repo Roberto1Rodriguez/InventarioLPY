@@ -248,7 +248,6 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
                 numeroContacto = contactos[position]
                 empleadoNfcId = nfcIds[position]
                 qrIdentificador = qrIds[position]
-                firmaEmpleadoBitmap = firmas[position] // Asigna la firma seleccionada
             }
 
             override fun onNothingSelected(parent: AdapterView<*>?) {}
