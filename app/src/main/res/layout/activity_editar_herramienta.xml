@@ -1,95 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="16dp">
+    android:layout_height="wrap_content"
+    android:padding="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
+        <!-- Botón para habilitar/cancelar edición -->
+        <ImageButton
+            android:id="@+id/btnEditarCancelar"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_gravity="end"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/edit"
+            android:scaleType="centerCrop"/>
 
-        <!-- Campo de Nombre -->
+
+        <!-- Campos de detalles de la herramienta -->
         <EditText
             android:id="@+id/etNombre"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nombre" />
+            android:hint="Nombre"
+            android:enabled="false" />
 
-        <!-- Campo de Marca -->
         <EditText
             android:id="@+id/etMarca"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Marca" />
+            android:hint="Marca"
+            android:enabled="false" />
 
-        <!-- Campo de Modelo -->
         <EditText
             android:id="@+id/etModelo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Modelo" />
+            android:hint="Modelo"
+            android:enabled="false" />
 
-        <!-- Campo de Serie -->
         <EditText
             android:id="@+id/etSerie"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Serie" />
+            android:hint="Serie"
+            android:enabled="false" />
 
-        <!-- Campo de Código Interno -->
         <EditText
             android:id="@+id/etCodigoInterno"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Código Interno" />
+            android:hint="Código Interno"
+            android:enabled="false" />
 
-        <!-- Campo de Descripción -->
         <EditText
             android:id="@+id/etDescripcion"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Descripción" />
+            android:hint="Descripción"
+            android:enabled="false" />
 
-        <!-- Campo de Precio -->
         <EditText
             android:id="@+id/etPrecio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Precio"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:enabled="false" />
 
         <Spinner
-
             android:id="@+id/spinnerEstadoHerramienta"
             android:layout_width="match_parent"
-            android:layout_height="37dp"
+            android:layout_height="wrap_content"
+            android:enabled="false"
             android:entries="@array/estados_herramienta" />
-
 
         <!-- Foto de la herramienta -->
         <ImageView
             android:id="@+id/imgFotoHerramienta"
             android:layout_width="150dp"
-            android:layout_margin="10dp"
             android:layout_height="150dp"
             android:scaleType="centerCrop"
-            android:layout_gravity="center"
-            android:contentDescription="Foto de la herramienta" />
+            android:contentDescription="Foto de la herramienta"
+            android:layout_gravity="center" />
 
-        <!-- Botón para cambiar la foto -->
+        <!-- Botón para cambiar foto -->
         <Button
             android:id="@+id/btnCambiarFoto"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cambiar Foto" />
+            android:text="Cambiar Foto"
+            android:enabled="false" />
 
-        <!-- Botón para guardar -->
+        <!-- Botón para guardar cambios -->
         <Button
             android:id="@+id/btnGuardar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Guardar Cambios" />
-
+            android:text="Guardar Cambios"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>

@@ -13,7 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import android.Manifest
-
+import android.util.Log
+import android.widget.ImageView
 
 class RegistrarHerramientaActivity : AppCompatActivity() {
 
@@ -26,6 +27,7 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
     private lateinit var etPrecio: EditText // Nuevo campo para el precio
     private lateinit var btnCapturarFoto: Button
     private lateinit var btnRegistrar: Button
+    private lateinit var imgVistaPreviaHerramienta: ImageView // Vista previa de la foto
 
     private var fotoHerramientaBitmap: Bitmap? = null
 
@@ -45,9 +47,10 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
         etSerie = findViewById(R.id.etSerieHerramienta)
         etCodigoInterno = findViewById(R.id.etCodigoInternoHerramienta)
         etDescripcion = findViewById(R.id.etDescripcionHerramienta)
-        etPrecio = findViewById(R.id.etPrecioHerramienta) // Inicialización del nuevo campo de precio
+        etPrecio = findViewById(R.id.etPrecioHerramienta)
         btnCapturarFoto = findViewById(R.id.btnCapturarFotoHerramienta)
         btnRegistrar = findViewById(R.id.btnRegistrarHerramienta)
+        imgVistaPreviaHerramienta = findViewById(R.id.imgVistaPreviaHerramienta) // Inicialización
 
         solicitarPermisoCamara()
 
@@ -75,6 +78,7 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == CODIGO_FOTO && resultCode == Activity.RESULT_OK) {
             fotoHerramientaBitmap = data?.extras?.get("data") as Bitmap
+            imgVistaPreviaHerramienta.setImageBitmap(fotoHerramientaBitmap) // Actualizar la vista previa
             btnCapturarFoto.setBackgroundColor(ContextCompat.getColor(this, R.color.colorCompleted))
         }
     }
@@ -88,11 +92,14 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
         val descripcion = etDescripcion.text.toString()
         val precioText = etPrecio.text.toString()
 
-        // Validar que el precio sea un valor numérico
         val precio = precioText.toDoubleOrNull()
         if (nombre.isEmpty() || marca.isEmpty() || modelo.isEmpty() || serie.isEmpty() ||
             codigoInterno.isEmpty() || descripcion.isEmpty() || fotoHerramientaBitmap == null || precio == null) {
-            Toast.makeText(this, "Completa todos los campos, captura la foto y asegúrate de ingresar un precio válido", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Completa todos los campos, captura la foto y asegúrate de ingresar un precio válido",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -106,7 +113,7 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
             put(DatabaseHelper.COL_SERIE, serie)
             put(DatabaseHelper.COL_CODIGO_INTERNO, codigoInterno)
             put(DatabaseHelper.COL_DESCRIPCION, descripcion)
-            put(DatabaseHelper.COL_PRECIO, precio) // Guardar el precio en la base de datos
+            put(DatabaseHelper.COL_PRECIO, precio)
             put(DatabaseHelper.COL_ESTADO, "Disponible")
             put(DatabaseHelper.COL_FOTO_HERRAMIENTA, convertBitmapToByteArray(fotoHerramientaBitmap))
         }
@@ -115,13 +122,13 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
 
         if (newRowId != -1L) {
             Toast.makeText(this, "Herramienta registrada exitosamente", Toast.LENGTH_SHORT).show()
+            logDatosBaseDatos() // Llamada al método para mostrar los datos en el log
             limpiarCampos()
             finish()
         } else {
             Toast.makeText(this, "Error al registrar la herramienta", Toast.LENGTH_SHORT).show()
         }
     }
-
     private fun limpiarCampos() {
         etNombre.text.clear()
         etMarca.text.clear()
@@ -129,10 +136,49 @@ class RegistrarHerramientaActivity : AppCompatActivity() {
         etSerie.text.clear()
         etCodigoInterno.text.clear()
         etDescripcion.text.clear()
-        etPrecio.text.clear() // Limpiar el nuevo campo de precio
+        etPrecio.text.clear()
         fotoHerramientaBitmap = null
+        imgVistaPreviaHerramienta.setImageResource(R.drawable.ic_placeholder) // Resetear la imagen
     }
+    private fun logDatosBaseDatos() {
+        val dbHelper = DatabaseHelper(this)
+        val db = dbHelper.readableDatabase
 
+        val cursor = db.query(
+            DatabaseHelper.TABLE_HERRAMIENTAS,
+            null, // Obtener todas las columnas
+            null,
+            null,
+            null,
+            null,
+            null
+        )
+
+        if (cursor.moveToFirst()) {
+            do {
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_HERRAMIENTA))
+                val nombre = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE))
+                val marca = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_MARCA))
+                val modelo = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_MODELO))
+                val serie = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SERIE))
+                val codigoInterno =
+                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CODIGO_INTERNO))
+                val descripcion =
+                    cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_DESCRIPCION))
+                val precio = cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_PRECIO))
+                val estado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO))
+
+                Log.d(
+                    "HerramientasDB",
+                    "ID: $id, Nombre: $nombre, Marca: $marca, Modelo: $modelo, Serie: $serie, " +
+                            "Código Interno: $codigoInterno, Descripción: $descripcion, Precio: $precio, Estado: $estado"
+                )
+            } while (cursor.moveToNext())
+        } else {
+            Log.d("HerramientasDB", "No hay herramientas almacenadas en la base de datos.")
+        }
+        cursor.close()
+    }
     private fun convertBitmapToByteArray(bitmap: Bitmap?): ByteArray {
         val stream = java.io.ByteArrayOutputStream()
         bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)

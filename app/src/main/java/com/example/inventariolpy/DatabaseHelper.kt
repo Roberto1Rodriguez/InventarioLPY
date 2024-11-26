@@ -1,7 +1,9 @@
 package com.example.inventariolpy
 
 
+import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
@@ -18,10 +20,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_DIRECCION = "direccion"
         const val COL_CURP = "curp"
         const val COL_FOTO = "foto"
-        const val COL_FIRMA = "firma"
         const val COL_RFC = "rfc"
         const val COL_CONTACTO = "contacto"
         const val COL_NFC_ID = "nfc_id"
+        const val COL_ESTADO_EMPLEADO = "estado"
         const val COL_QR_IDENTIFICADOR = "qr_identificador"
 
         // Tabla de herramientas
@@ -60,9 +62,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 $COL_DIRECCION TEXT,
                 $COL_CURP TEXT,
                 $COL_FOTO BLOB,
-                $COL_FIRMA BLOB,
                 $COL_RFC TEXT,
                 $COL_CONTACTO TEXT,
+                $COL_ESTADO_EMPLEADO TEXT,
                 $COL_NFC_ID TEXT,
                 $COL_QR_IDENTIFICADOR TEXT
             )
@@ -110,7 +112,113 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL(createPrestamosTable)
         db.execSQL(createPrestamoHerramientasTable)
     }
+    fun eliminarHerramientaLogico(herramientaId: Int) {
+        val db = writableDatabase
+        val contentValues = ContentValues().apply {
+            put("estado", "Inactiva") // Marcar la herramienta como "Inactiva"
+        }
+        db.update("herramientas", contentValues, "id = ?", arrayOf(herramientaId.toString()))
+    }
+    fun obtenerHerramientasActivas(): Cursor {
+        val db = readableDatabase
+        return db.query(
+            "herramientas",
+            null,
+            "estado != ?", // Filtra herramientas que no estén marcadas como "Inactiva"
+            arrayOf("Inactiva"),
+            null,
+            null,
+            null
+        )
+    }
+    fun tienePrestamosActivos(empleadoId: Int): Boolean {
+        val db = readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT COUNT(*) FROM $TABLE_PRESTAMOS WHERE $COL_EMPLEADO_ID = ? AND $COL_ESTADO_PRESTAMO = ?",
+            arrayOf(empleadoId.toString(), "Activo")
+        )
+        var tienePrestamos = false
+        if (cursor.moveToFirst()) {
+            tienePrestamos = cursor.getInt(0) > 0
+        }
+        cursor.close()
+        return tienePrestamos
+    }
+    fun eliminarEmpleadoLogico(empleadoId: Int) {
+        val db = writableDatabase
+        val contentValues = ContentValues().apply {
+            put("estado", "Inactivo") // Marcar el empleado como "Inactivo"
+        }
+        db.update(TABLE_EMPLEADOS, contentValues, "$COL_ID_EMPLEADO = ?", arrayOf(empleadoId.toString()))
+    }
+    fun obtenerEmpleadosActivos(): Cursor {
+        val db = readableDatabase
+        return db.query(
+            TABLE_EMPLEADOS,
+            null,
+            "estado = ?", // Filtrar empleados activos
+            arrayOf("Activo"),
+            null,
+            null,
+            null
+        )
+    }
 
+    fun actualizarHerramienta(herramienta: Herramienta) {
+        val db = writableDatabase
+        val values = ContentValues().apply {
+            put(COL_NOMBRE, herramienta.nombre)
+            put(COL_MARCA, herramienta.marca)
+            put(COL_MODELO, herramienta.modelo)
+            put(COL_SERIE, herramienta.serie)
+            put(COL_CODIGO_INTERNO, herramienta.codigoInterno)
+            put(COL_DESCRIPCION, herramienta.descripcion)
+            put(COL_PRECIO, herramienta.precio)
+            put(COL_ESTADO, herramienta.estado)
+        }
+        db.update(TABLE_HERRAMIENTAS, values, "$COL_ID_HERRAMIENTA = ?", arrayOf(herramienta.id.toString()))
+    }
+    fun obtenerHerramientaPorId(id: Int): Herramienta? {
+        val db = readableDatabase
+        val cursor = db.query(
+            TABLE_HERRAMIENTAS,
+            null,
+            "$COL_ID_HERRAMIENTA = ?",
+            arrayOf(id.toString()),
+            null,
+            null,
+            null
+        )
+
+        return if (cursor.moveToFirst()) {
+            val nombre = cursor.getString(cursor.getColumnIndexOrThrow(COL_NOMBRE))
+            val estado = cursor.getString(cursor.getColumnIndexOrThrow(COL_ESTADO))
+            val marca = cursor.getString(cursor.getColumnIndexOrThrow(COL_MARCA))
+            val modelo = cursor.getString(cursor.getColumnIndexOrThrow(COL_MODELO))
+            val serie = cursor.getString(cursor.getColumnIndexOrThrow(COL_SERIE))
+            val codigoInterno = cursor.getString(cursor.getColumnIndexOrThrow(COL_CODIGO_INTERNO))
+            val descripcion = cursor.getString(cursor.getColumnIndexOrThrow(COL_DESCRIPCION))
+            val precio = cursor.getDouble(cursor.getColumnIndexOrThrow(COL_PRECIO))
+            val fotoHerramienta = cursor.getBlob(cursor.getColumnIndexOrThrow(COL_FOTO_HERRAMIENTA))
+
+            cursor.close()
+            Herramienta(
+                id = id,
+                nombre = nombre,
+                estado = estado,
+                marca = marca,
+                modelo = modelo,
+                serie = serie,
+                codigoInterno = codigoInterno,
+                descripcion = descripcion,
+                precio = precio,
+                fotoHerramienta = fotoHerramienta
+            )
+        } else {
+            cursor.close()
+            null
+        }
+    }
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PRESTAMO_HERRAMIENTAS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_PRESTAMOS")

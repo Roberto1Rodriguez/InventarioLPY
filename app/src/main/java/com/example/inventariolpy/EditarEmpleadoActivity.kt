@@ -28,12 +28,10 @@ class EditarEmpleadoActivity : AppCompatActivity() {
     private lateinit var etRfc: EditText
     private lateinit var etContacto: EditText
     private lateinit var btnCapturarFoto: Button
-    private lateinit var btnCapturarFirma: Button
     private lateinit var btnAutenticacion: Button
     private lateinit var imgFotoEmpleado: ImageView
     private var empleadoId: Int = 0
     private var fotoEmpleadoBitmap: Bitmap? = null
-    private var firmaEmpleadoBitmap: Bitmap? = null
     private var nfcAdapter: NfcAdapter? = null
 
     companion object {
@@ -52,7 +50,6 @@ class EditarEmpleadoActivity : AppCompatActivity() {
         etRfc = findViewById(R.id.etRfc)
         etContacto = findViewById(R.id.etContacto)
         btnCapturarFoto = findViewById(R.id.btnCapturarFoto)
-        btnCapturarFirma = findViewById(R.id.btnCapturarFirma)
         btnAutenticacion = findViewById(R.id.btnAutenticacion)
         imgFotoEmpleado = findViewById(R.id.imgFotoEmpleado)
 
@@ -64,7 +61,6 @@ class EditarEmpleadoActivity : AppCompatActivity() {
 
         // Configurar botones de captura de foto y firma
         btnCapturarFoto.setOnClickListener { mostrarOpcionesCapturaFoto() }
-        btnCapturarFirma.setOnClickListener { capturarFirma() }
 
         // Configurar botón de autenticación NFC/QR
         btnAutenticacion.setOnClickListener { mostrarPopupAutenticacion() }
@@ -135,6 +131,7 @@ class EditarEmpleadoActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_IMAGE_PICK)
     }
 
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == RESULT_OK) {
@@ -154,6 +151,13 @@ class EditarEmpleadoActivity : AppCompatActivity() {
                 }
             }
         }
+
+        val result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data)
+        if (result != null && result.contents != null) {
+            nuevoQrIdentificador = result.contents
+            btnAutenticacion.setBackgroundColor(ContextCompat.getColor(this, R.color.colorCompleted))
+            Toast.makeText(this, "Código QR capturado: $nuevoQrIdentificador", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun capturarFirma() {
@@ -170,15 +174,6 @@ class EditarEmpleadoActivity : AppCompatActivity() {
         val btnGuardarFirma = dialog.findViewById<Button>(R.id.btnGuardarFirma)
         val signaturePad = dialog.findViewById<SignaturePad>(R.id.signaturePad)
 
-        btnGuardarFirma.setOnClickListener {
-            if (!signaturePad.isEmpty) {
-                firmaEmpleadoBitmap = signaturePad.signatureBitmap
-                btnCapturarFirma.setBackgroundColor(ContextCompat.getColor(this, R.color.colorCompleted))
-                dialog.dismiss()
-            } else {
-                Toast.makeText(this, "Por favor, dibuja tu firma antes de guardar", Toast.LENGTH_SHORT).show()
-            }
-        }
 
         dialog.show()
     }
@@ -205,7 +200,7 @@ class EditarEmpleadoActivity : AppCompatActivity() {
     private fun iniciarAutenticacionNFC() {
         val nfcAuthDialog = AlertDialog.Builder(this)
             .setTitle("Autenticación NFC")
-            .setMessage("Acerca tu tarjeta NFC para confirmar")
+            .setMessage("Acerca tu tarjeta NFC para agregarla al empleado")
             .setCancelable(false)
             .setNegativeButton("Cancelar") { dialog, _ ->
                 nfcAdapter?.disableReaderMode(this)
@@ -216,11 +211,14 @@ class EditarEmpleadoActivity : AppCompatActivity() {
         nfcAdapter?.enableReaderMode(this, { tag ->
             val idTag = tag?.id?.joinToString("") { "%02x".format(it) }
             runOnUiThread {
-                if (idTag == "EXPECTED_NFC_ID") {
-                    Toast.makeText(this, "Autenticación NFC exitosa", Toast.LENGTH_SHORT).show()
+                if (idTag != null) {
+                    // Guardar el nuevo NFC ID
+                    Toast.makeText(this, "Tarjeta NFC detectada: $idTag", Toast.LENGTH_SHORT).show()
+                    btnAutenticacion.setBackgroundColor(ContextCompat.getColor(this, R.color.colorCompleted))
                     nfcAuthDialog.dismiss()
+                    guardarNuevoNfc(idTag) // Guardar el nuevo NFC ID
                 } else {
-                    Toast.makeText(this, "ID de tarjeta no coincide", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Error al leer la tarjeta NFC", Toast.LENGTH_SHORT).show()
                 }
             }
         }, NfcAdapter.FLAG_READER_NFC_A, null)
@@ -230,6 +228,12 @@ class EditarEmpleadoActivity : AppCompatActivity() {
         }
     }
 
+    // Guardar el nuevo NFC ID en memoria temporal
+    private var nuevoNfcId: String? = null
+
+    private fun guardarNuevoNfc(nfcId: String) {
+        nuevoNfcId = nfcId
+    }
     private fun iniciarEscaneoQR() {
         val integrator = IntentIntegrator(this)
         integrator.setDesiredBarcodeFormats(IntentIntegrator.QR_CODE)
@@ -238,6 +242,9 @@ class EditarEmpleadoActivity : AppCompatActivity() {
         integrator.setBarcodeImageEnabled(true)
         integrator.initiateScan()
     }
+
+    // Guardar el nuevo QR ID en memoria temporal
+    private var nuevoQrIdentificador: String? = null
 
     private fun guardarCambios() {
         if (etNombre.text.isNullOrBlank()) {
@@ -263,6 +270,12 @@ class EditarEmpleadoActivity : AppCompatActivity() {
             put(DatabaseHelper.COL_CONTACTO, etContacto.text.toString().trim())
             if (fotoEmpleadoBitmap != null) {
                 put(DatabaseHelper.COL_FOTO, convertirBitmapABlob(fotoEmpleadoBitmap))
+            }
+            if (nuevoNfcId != null) {
+                put(DatabaseHelper.COL_NFC_ID, nuevoNfcId) // Actualizar NFC ID si se capturó uno nuevo
+            }
+            if (nuevoQrIdentificador != null) {
+                put(DatabaseHelper.COL_QR_IDENTIFICADOR, nuevoQrIdentificador) // Actualizar QR ID si se capturó uno nuevo
             }
         }
 

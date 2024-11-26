@@ -93,7 +93,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
             val db = dbHelper.readableDatabase
 
             val query = """
-        SELECT e.${DatabaseHelper.COL_NOMBRE_EMPLEADO}, e.${DatabaseHelper.COL_FIRMA}
+        SELECT e.${DatabaseHelper.COL_NOMBRE_EMPLEADO}
         FROM ${DatabaseHelper.TABLE_EMPLEADOS} e
         JOIN ${DatabaseHelper.TABLE_PRESTAMOS} p ON e.${DatabaseHelper.COL_ID_EMPLEADO} = p.${DatabaseHelper.COL_EMPLEADO_ID}
         WHERE p.${DatabaseHelper.COL_ID_PRESTAMO} = ?
@@ -104,7 +104,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
             var firmaEmpleado: ByteArray? = null
             if (cursor.moveToFirst()) {
                 nombreEmpleado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE_EMPLEADO))
-                firmaEmpleado = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_FIRMA))
+
             }
             cursor.close()
 

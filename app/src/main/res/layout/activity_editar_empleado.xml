@@ -74,13 +74,7 @@
             android:text="Capturar Foto"
             android:layout_marginTop="8dp" />
 
-        <!-- Botón para capturar firma -->
-        <Button
-            android:id="@+id/btnCapturarFirma"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Capturar Firma"
-            android:layout_marginTop="8dp" />
+
 
         <!-- Botón para autenticación NFC/QR -->
         <Button

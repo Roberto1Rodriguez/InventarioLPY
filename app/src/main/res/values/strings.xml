@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">InventarioLPY</string>
+    <string name="app_name">Balance</string>
     <string-array name="estados_herramienta">
         <item>Disponible</item>
         <item>Prestada</item>

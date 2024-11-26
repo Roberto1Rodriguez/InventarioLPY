@@ -45,19 +45,29 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Descripción" />
+    <!-- Botón para capturar foto -->
     <Button
         android:id="@+id/btnCapturarFotoHerramienta"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Capturar Foto" />
 
+    <!-- Vista previa de la foto capturada -->
+    <ImageView
+        android:id="@+id/imgVistaPreviaHerramienta"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center"
+        android:contentDescription="Vista previa de la herramienta"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_placeholder" />
 
-
-
-
+    <!-- Botón para registrar herramienta -->
     <Button
         android:id="@+id/btnRegistrarHerramienta"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
         android:text="Registrar Herramienta" />
 </LinearLayout>

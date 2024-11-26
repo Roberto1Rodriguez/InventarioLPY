@@ -5,26 +5,40 @@ import android.os.Parcelable
 
 data class Herramienta(
     val id: Int,
-    val nombre: String,
+    var nombre: String,
     var estado: String, // Permite la modificación del estado
-    val marca: String? = null,
-    val modelo: String? = null,
-    val serie: String? = null,
-    val codigoInterno: String? = null,
+    var marca: String? = null,
+    var modelo: String? = null,
+    var serie: String? = null,
+    var codigoInterno: String? = null,
     val fotoHerramienta: ByteArray? = null, // Para imágenes
-    val descripcion: String? = null,
-    val precio: Double = 0.0 // Por defecto es 0 si no se proporciona un valor
+    var descripcion: String? = null,
+    var precio: Double = 0.0 // Por defecto es 0 si no se proporciona un valor
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),
         parcel.readString() ?: "",
-        parcel.readString() ?: ""
+        parcel.readString() ?: "",
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.createByteArray(),
+        parcel.readString(),
+        parcel.readDouble()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeInt(id)
         parcel.writeString(nombre)
         parcel.writeString(estado)
+        parcel.writeString(marca)
+        parcel.writeString(modelo)
+        parcel.writeString(serie)
+        parcel.writeString(codigoInterno)
+        parcel.writeByteArray(fotoHerramienta)
+        parcel.writeString(descripcion)
+        parcel.writeDouble(precio)
     }
 
     override fun describeContents(): Int {

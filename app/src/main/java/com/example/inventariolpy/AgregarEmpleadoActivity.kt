@@ -34,12 +34,10 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
     private lateinit var etRfc: EditText
     private lateinit var etContacto: EditText
     private lateinit var btnCapturarFoto: Button
-    private lateinit var btnCapturarFirma: Button
     private lateinit var btnAutenticacion: Button
     private lateinit var btnAgregarEmpleado: Button
 
     private var fotoEmpleadoBitmap: Bitmap? = null
-    private var firmaEmpleadoBitmap: Bitmap? = null
     private var nfcId: String? = null
     private var qrIdentificador: String? = null
     private var nfcAdapter: NfcAdapter? = null
@@ -59,7 +57,6 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         etRfc = findViewById(R.id.etRfc)
         etContacto = findViewById(R.id.etContacto)
         btnCapturarFoto = findViewById(R.id.btnCapturarFoto)
-        btnCapturarFirma = findViewById(R.id.btnCapturarFirma)
         btnAutenticacion = findViewById(R.id.btnAutenticacion)
         btnAgregarEmpleado = findViewById(R.id.btnAgregarEmpleado)
 
@@ -70,9 +67,7 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             capturarFoto()
         }
 
-        btnCapturarFirma.setOnClickListener {
-            capturarFirma()
-        }
+
 
         btnAutenticacion.setOnClickListener {
             mostrarDialogoAutenticacion()
@@ -109,11 +104,7 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         val btnGuardarFirma = dialog.findViewById<Button>(R.id.btnGuardarFirma)
         val signaturePad = dialog.findViewById<SignaturePad>(R.id.signaturePad)
 
-        btnGuardarFirma.setOnClickListener {
-            firmaEmpleadoBitmap = signaturePad.signatureBitmap
-            btnCapturarFirma.setBackgroundColor(ContextCompat.getColor(this, R.color.colorCompleted))
-            dialog.dismiss()
-        }
+
 
         dialog.show()
     }
@@ -200,7 +191,7 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
 
     private fun agregarEmpleado() {
         if (etNombre.text.isEmpty() || etDireccion.text.isEmpty() || etCurp.text.isEmpty() || etRfc.text.isEmpty() || etContacto.text.isEmpty() ||
-            fotoEmpleadoBitmap == null || firmaEmpleadoBitmap == null || (nfcId == null && qrIdentificador == null)
+            fotoEmpleadoBitmap == null ||  (nfcId == null && qrIdentificador == null)
         ) {
             Toast.makeText(this, "Completa todos los campos", Toast.LENGTH_SHORT).show()
             return
@@ -217,8 +208,8 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
             put(DatabaseHelper.COL_CONTACTO, etContacto.text.toString())
             put(DatabaseHelper.COL_NFC_ID, nfcId)
             put(DatabaseHelper.COL_QR_IDENTIFICADOR, qrIdentificador)
-            put(DatabaseHelper.COL_FIRMA, convertBitmapToByteArray(firmaEmpleadoBitmap))
             put(DatabaseHelper.COL_FOTO, convertBitmapToByteArray(fotoEmpleadoBitmap))
+            put(DatabaseHelper.COL_ESTADO_EMPLEADO,"Activo")
         }
 
         db.insert(DatabaseHelper.TABLE_EMPLEADOS, null, values)

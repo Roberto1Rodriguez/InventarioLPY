@@ -19,12 +19,12 @@
         android:layout_height="wrap_content"
         android:text="Ver Lista de Préstamos"/>
 
-    <Button
+  <!--  <Button
         android:id="@+id/btnVerPagares"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Ver Pagares"
-        android:layout_gravity="center_horizontal" />
+        android:layout_gravity="center_horizontal" />-->
 
 
     <Button

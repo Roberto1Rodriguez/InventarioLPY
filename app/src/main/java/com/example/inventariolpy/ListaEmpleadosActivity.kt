@@ -50,49 +50,21 @@ class ListaEmpleadosActivity : AppCompatActivity() {
         // Recargar la lista de empleados al regresar de la actividad de edición
         recargarListaEmpleados()
     }
-
     private fun configurarListaEmpleados() {
         val dbHelper = DatabaseHelper(this)
-        val db = dbHelper.readableDatabase
-        val projection = arrayOf(
-            DatabaseHelper.COL_ID_EMPLEADO,
-            DatabaseHelper.COL_NOMBRE_EMPLEADO,
-            DatabaseHelper.COL_CONTACTO,
-            DatabaseHelper.COL_FOTO
-        )
-        val cursor: Cursor = db.query(
-            DatabaseHelper.TABLE_EMPLEADOS,
-            projection,
-            null,
-            null,
-            null,
-            null,
-            null
-        )
+        val cursor = dbHelper.obtenerEmpleadosActivos()
 
         adapter = EmpleadoAdapter(this, cursor)
         listViewEmpleados.adapter = adapter
     }
 
-    private fun recargarListaEmpleados() {
-        val dbHelper = DatabaseHelper(this)
-        val db = dbHelper.readableDatabase
-        val projection = arrayOf(
-            DatabaseHelper.COL_ID_EMPLEADO,
-            DatabaseHelper.COL_NOMBRE_EMPLEADO,
-            DatabaseHelper.COL_CONTACTO,
-            DatabaseHelper.COL_FOTO
-        )
-        val cursor: Cursor = db.query(
-            DatabaseHelper.TABLE_EMPLEADOS,
-            projection,
-            null,
-            null,
-            null,
-            null,
-            null
-        )
 
-        adapter.changeCursor(cursor) // Usar un método para cambiar el cursor en el adaptador
+
+    fun recargarListaEmpleados() {
+        val dbHelper = DatabaseHelper(this)
+        val cursor = dbHelper.obtenerEmpleadosActivos()
+
+        adapter.changeCursor(cursor)
     }
+
 }

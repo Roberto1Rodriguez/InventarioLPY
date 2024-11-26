@@ -199,9 +199,21 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
             DatabaseHelper.COL_CONTACTO,
             DatabaseHelper.COL_NFC_ID,
             DatabaseHelper.COL_QR_IDENTIFICADOR,
-            DatabaseHelper.COL_FIRMA
         )
-        val cursor = db.query(DatabaseHelper.TABLE_EMPLEADOS, projection, null, null, null, null, null)
+
+        // Filtra solo los empleados activos
+        val selection = "estado != ?" // Asume que tienes un campo `estado` en la tabla empleados
+        val selectionArgs = arrayOf("Inactivo")
+
+        val cursor = db.query(
+            DatabaseHelper.TABLE_EMPLEADOS,
+            projection,
+            selection,
+            selectionArgs,
+            null,
+            null,
+            null
+        )
 
         val empleados = ArrayList<String>()
         val empleadoIds = ArrayList<Int>()
@@ -216,15 +228,12 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
             val contacto = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CONTACTO))
             val nfcId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NFC_ID))
             val qrId = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_QR_IDENTIFICADOR))
-            val firmaBlob = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_FIRMA))
-            val firmaBitmap = BitmapFactory.decodeByteArray(firmaBlob, 0, firmaBlob.size)
 
             empleados.add(nombreEmpleado)
             empleadoIds.add(empleadoId)
             contactos.add(contacto)
             nfcIds.add(nfcId)
             qrIds.add(qrId)
-            firmas.add(firmaBitmap)
         }
         cursor.close()
 

@@ -32,7 +32,6 @@ class DevolucionActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private val herramientasActualizadas = mutableListOf<Herramienta>()
     private var nombreEmpleado: String = ""
-    private var firmaEmpleadoBitmap: Bitmap? = null
     private var empleadoNfcId: String? = null
     private var empleadoQrId: String? = null
     private var nfcAdapter: NfcAdapter? = null
@@ -45,10 +44,7 @@ class DevolucionActivity : AppCompatActivity() {
         prestamoId = intent.getIntExtra("prestamoId", 0)
         herramientas = intent.getParcelableArrayListExtra("herramientas") ?: listOf()
         nombreEmpleado = intent.getStringExtra("nombreEmpleado") ?: ""
-        val firmaByteArray = intent.getByteArrayExtra("firmaEmpleado")
-        firmaEmpleadoBitmap = firmaByteArray?.let {
-            BitmapFactory.decodeByteArray(it, 0, it.size)
-        }
+
 
         // Obtener NFC y QR del empleado
         empleadoNfcId = intent.getStringExtra("empleadoNfcId")
@@ -215,76 +211,10 @@ class DevolucionActivity : AppCompatActivity() {
             arrayOf(prestamoId.toString())
         )
 
-        if (herramientasParaPagare.isNotEmpty()) {
-            generarPagare(herramientasParaPagare)
-        }
+
 
         Toast.makeText(this, "Devolución procesada", Toast.LENGTH_SHORT).show()
         finish()
     }
 
-    private fun generarPagare(herramientas: List<Herramienta>) {
-        val sdf = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-        val fechaActual = sdf.format(Date())
-
-        val pdfDocument = PdfDocument()
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-
-        val canvas = page.canvas
-        val paint = Paint()
-        paint.textSize = 12f
-        paint.isFakeBoldText = true
-
-        // Encabezado del PDF
-        canvas.drawText("PAGARÉ DE RESPONSABILIDAD", 200f, 80f, paint)
-        paint.isFakeBoldText = false
-
-        val textIntro = "Yo, $nombreEmpleado, me comprometo a responder por las herramientas en el estado señalado."
-        canvas.drawText(textIntro, 40f, 120f, paint)
-
-        var yPosition = 160f
-        herramientas.forEachIndexed { index, herramienta ->
-            canvas.drawText("${index + 1}. ${herramienta.nombre} - Estado: ${herramienta.estado}", 40f, yPosition, paint)
-            yPosition += 20f
-        }
-
-        // Firma del empleado (opcional, si está disponible)
-        firmaEmpleadoBitmap?.let { bitmap ->
-            val scaledBitmap = Bitmap.createScaledBitmap(bitmap, 200, 100, true)
-            canvas.drawBitmap(scaledBitmap, 40f, yPosition + 50f, paint)
-        }
-
-        pdfDocument.finishPage(page)
-
-        // Directorio de PDF
-        val pdfDir = File(filesDir, "pdfs")
-        if (!pdfDir.exists()) pdfDir.mkdirs()
-
-        // Nombre base del archivo PDF
-        var fileNameBase = "Pagare_${nombreEmpleado}_$fechaActual"
-        var fileName = "$fileNameBase.pdf"
-        var file = File(pdfDir, fileName)
-
-        // Verificar si existe un archivo con el mismo nombre y agregar un número incremental
-        var counter = 1
-        while (file.exists()) {
-            fileName = "${fileNameBase}_$counter.pdf"
-            file = File(pdfDir, fileName)
-            counter++
-        }
-
-        // Guardar el PDF con un nombre único
-        try {
-            pdfDocument.writeTo(FileOutputStream(file))
-            Toast.makeText(this, "PDF generado: ${file.absolutePath}", Toast.LENGTH_LONG).show()
-            Log.d("GenerarPagare", "PDF generado exitosamente: ${file.absolutePath}")
-        } catch (e: IOException) {
-            e.printStackTrace()
-            Toast.makeText(this, "Error al generar el PDF", Toast.LENGTH_SHORT).show()
-            Log.d("GenerarPagare", "Error al generar el PDF")
-        } finally {
-            pdfDocument.close()
-        }
     }
-}
