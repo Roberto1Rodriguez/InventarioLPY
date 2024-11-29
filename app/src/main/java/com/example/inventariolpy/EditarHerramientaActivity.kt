@@ -64,6 +64,7 @@ class EditarHerramientaActivity: AppCompatActivity() {
         if (soloVisualizar) {
             setFieldsEnabled(false) // Deshabilitar campos
             btnEditarCancelar.visibility = View.GONE // Ocultar botón de editar/cancelar
+            btnCambiarFoto.visibility=View.GONE
             btnGuardar.visibility = View.GONE // Ocultar botón de guardar
         } else {
             // Botón para habilitar/cancelar edición
