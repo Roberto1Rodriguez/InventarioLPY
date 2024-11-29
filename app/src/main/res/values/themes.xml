@@ -8,5 +8,11 @@
         <item name="colorAccent">@color/colorAccent</item>
         <item name="android:statusBarColor">@color/red</item> <!-- Color de la barra de estado -->
     </style>
-
+    <style name="CustomDialogTheme" parent="Theme.AppCompat.Light.Dialog">
+        <item name="android:windowMinWidthMajor">90%</item>
+        <item name="android:windowMinWidthMinor">90%</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:windowBackground">@color/zxing_transparent</item> <!-- Fondo blanco -->
+        <item name="android:windowIsFloating">true</item>
+    </style>
 </resources>

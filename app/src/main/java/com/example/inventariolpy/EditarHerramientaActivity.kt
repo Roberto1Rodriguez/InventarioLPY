@@ -6,9 +6,11 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
@@ -17,7 +19,6 @@ import androidx.appcompat.app.AppCompatActivity
 import java.io.ByteArrayOutputStream
 
 class EditarHerramientaActivity: AppCompatActivity() {
-
     private lateinit var etNombre: EditText
     private lateinit var etMarca: EditText
     private lateinit var etModelo: EditText
@@ -25,17 +26,14 @@ class EditarHerramientaActivity: AppCompatActivity() {
     private lateinit var etCodigoInterno: EditText
     private lateinit var etDescripcion: EditText
     private lateinit var etPrecio: EditText
+    private lateinit var spinnerEstado: Spinner
     private lateinit var imgFotoHerramienta: ImageView
     private lateinit var btnCambiarFoto: Button
-    private lateinit var spinnerEstado: Spinner
+    private lateinit var btnGuardar: Button
+    private lateinit var btnEditarCancelar: ImageButton
 
     private var herramientaId: Int = 0
     private var fotoHerramientaBitmap: Bitmap? = null
-
-    companion object {
-        private const val REQUEST_IMAGE_CAPTURE = 1
-        private const val REQUEST_IMAGE_PICK = 2
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,194 +47,118 @@ class EditarHerramientaActivity: AppCompatActivity() {
         etCodigoInterno = findViewById(R.id.etCodigoInterno)
         etDescripcion = findViewById(R.id.etDescripcion)
         etPrecio = findViewById(R.id.etPrecio)
+        spinnerEstado = findViewById(R.id.spinnerEstadoHerramienta)
         imgFotoHerramienta = findViewById(R.id.imgFotoHerramienta)
         btnCambiarFoto = findViewById(R.id.btnCambiarFoto)
-        spinnerEstado = findViewById(R.id.spinnerEstadoHerramienta)
+        btnGuardar = findViewById(R.id.btnGuardar)
+        btnEditarCancelar = findViewById(R.id.btnEditarCancelar)
 
-
-        // Obtener el ID de la herramienta a editar
+        // Obtener el ID de la herramienta y el modo solo visualización desde el Intent
         herramientaId = intent.getIntExtra("herramientaId", 0)
+        val soloVisualizar = intent.getBooleanExtra("soloVisualizar", false)
 
-        // Cargar los datos de la herramienta desde la base de datos
+        // Cargar datos de la herramienta
         cargarDatosHerramienta()
 
-        // Configurar botón para cambiar la foto
-        btnCambiarFoto.setOnClickListener {
-            mostrarOpcionesCaptura()
-        }
+        // Si está en modo solo visualización (herramienta prestada)
+        if (soloVisualizar) {
+            setFieldsEnabled(false) // Deshabilitar campos
+            btnEditarCancelar.visibility = View.GONE // Ocultar botón de editar/cancelar
+            btnGuardar.visibility = View.GONE // Ocultar botón de guardar
+        } else {
+            // Botón para habilitar/cancelar edición
+            var enEdicion = false
+            btnEditarCancelar.setOnClickListener {
+                enEdicion = !enEdicion
+                setFieldsEnabled(enEdicion)
+                btnEditarCancelar.setImageResource(if (enEdicion) R.drawable.close else R.drawable.edit)
+                btnGuardar.visibility = if (enEdicion) View.VISIBLE else View.GONE
+            }
 
-        // Configurar botón de guardar
-        val btnGuardar: Button = findViewById(R.id.btnGuardar)
-        btnGuardar.setOnClickListener {
-            guardarCambios()
+            // Botón para cambiar la foto
+            btnCambiarFoto.setOnClickListener { seleccionarNuevaFoto() }
+
+            // Botón para guardar cambios
+            btnGuardar.setOnClickListener { guardarCambios() }
         }
     }
+
     private fun cargarDatosHerramienta() {
         val dbHelper = DatabaseHelper(this)
-        val db = dbHelper.readableDatabase
+        val herramienta = dbHelper.obtenerHerramientaPorId(herramientaId)
 
-        val cursor = db.query(
-            DatabaseHelper.TABLE_HERRAMIENTAS,
-            null,
-            "${DatabaseHelper.COL_ID_HERRAMIENTA} = ?",
-            arrayOf(herramientaId.toString()),
-            null,
-            null,
-            null
-        )
+        if (herramienta != null) {
+            etNombre.setText(herramienta.nombre)
+            etMarca.setText(herramienta.marca)
+            etModelo.setText(herramienta.modelo)
+            etSerie.setText(herramienta.serie)
+            etCodigoInterno.setText(herramienta.codigoInterno)
+            etDescripcion.setText(herramienta.descripcion)
+            etPrecio.setText(herramienta.precio.toString())
 
-        if (cursor.moveToFirst()) {
-            etNombre.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE)))
-            etMarca.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_MARCA)))
-            etModelo.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_MODELO)))
-            etSerie.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_SERIE)))
-            etCodigoInterno.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CODIGO_INTERNO)))
-            etDescripcion.setText(cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_DESCRIPCION)))
-            etPrecio.setText(cursor.getDouble(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_PRECIO)).toString())
+            // Configurar opciones del spinner
+            val estados = resources.getStringArray(R.array.estados_herramienta).toMutableList()
+            val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, estados)
+            spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            spinnerEstado.adapter = spinnerAdapter
+            spinnerEstado.setSelection(spinnerAdapter.getPosition(herramienta.estado))
 
-            // Configurar la selección del Spinner para el estado actual
-            val estadoActual = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO))
-
-            // Configurar estados permitidos según el estado actual
-            val estados = if (estadoActual == "Prestada") {
-                // Si el estado actual es "Prestada", solo mostrar el estado actual y no permitir cambiarlo
-                arrayOf("Prestada")
+            // Cargar foto de la herramienta
+            if (herramienta.fotoHerramienta != null) {
+                fotoHerramientaBitmap = BitmapFactory.decodeByteArray(
+                    herramienta.fotoHerramienta, 0, herramienta.fotoHerramienta.size
+                )
+                imgFotoHerramienta.setImageBitmap(fotoHerramientaBitmap)
             } else {
-                // Excluir "Prestada" si el estado no es "Prestada"
-                resources.getStringArray(R.array.estados_herramienta).filter { it != "Prestada" }.toTypedArray()
+                imgFotoHerramienta.setImageResource(R.drawable.ic_placeholder)
             }
 
-            val estadosAdaptador = ArrayAdapter(this, android.R.layout.simple_spinner_item, estados)
-            estadosAdaptador.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            spinnerEstado.adapter = estadosAdaptador
-
-            // Seleccionar el estado actual en el Spinner si está permitido
-            val index = estados.indexOf(estadoActual)
-            if (index >= 0) {
-                spinnerEstado.setSelection(index)
-            }
-
-            // Deshabilitar el Spinner si el estado es "Prestada"
-            if (estadoActual == "Prestada") {
+            // Establecer el estado inicial de los campos
+            if (herramienta.estado == "Prestada") {
+                setFieldsEnabled(false) // Deshabilitar todo si está prestada
+            } else {
+                // Configura el `Spinner` para que esté deshabilitado inicialmente
                 spinnerEstado.isEnabled = false
-            }
-
-            // Cargar la foto
-            val fotoBlob = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_FOTO_HERRAMIENTA))
-            if (fotoBlob != null) {
-                val bitmap = BitmapFactory.decodeByteArray(fotoBlob, 0, fotoBlob.size)
-                imgFotoHerramienta.setImageBitmap(bitmap)
-                fotoHerramientaBitmap = bitmap
+                setFieldsEnabled(false) // Deshabilitar otros campos de manera inicial
             }
         }
-        cursor.close()
-    }
-    private fun mostrarOpcionesCaptura() {
-        val options = arrayOf("Tomar Foto", "Elegir de la Galería")
-        AlertDialog.Builder(this)
-            .setTitle("Cambiar Foto")
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> capturarFoto()
-                    1 -> seleccionarFotoDeGaleria()
-                }
-            }
-            .show()
     }
 
-    private fun capturarFoto() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(packageManager) != null) {
-            startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
-        }
-    }
-
-    private fun seleccionarFotoDeGaleria() {
+    private fun seleccionarNuevaFoto() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        startActivityForResult(intent, REQUEST_IMAGE_PICK)
+        startActivityForResult(intent, 1)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == RESULT_OK) {
-            when (requestCode) {
-                REQUEST_IMAGE_CAPTURE -> {
-                    val bitmap = data?.extras?.get("data") as Bitmap
-                    imgFotoHerramienta.setImageBitmap(bitmap)
-                    fotoHerramientaBitmap = bitmap
-                }
-                REQUEST_IMAGE_PICK -> {
-                    val uri = data?.data
-                    val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
-                    imgFotoHerramienta.setImageBitmap(bitmap)
-                    fotoHerramientaBitmap = bitmap
-                }
-            }
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            val uri = data?.data
+            val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, uri)
+            fotoHerramientaBitmap = bitmap
+            imgFotoHerramienta.setImageBitmap(bitmap)
         }
     }
 
     private fun guardarCambios() {
-        // Validar que los campos obligatorios no estén vacíos
-        if (etNombre.text.isNullOrBlank()) {
-            etNombre.error = "El nombre de la herramienta es obligatorio"
-            etNombre.requestFocus()
-            return
-        }
-
-        if (etMarca.text.isNullOrBlank()) {
-            etMarca.error = "La marca es obligatoria"
-            etMarca.requestFocus()
-            return
-        }
-
-        if (etModelo.text.isNullOrBlank()) {
-            etModelo.error = "El modelo es obligatorio"
-            etModelo.requestFocus()
-            return
-        }
-
-        if (etCodigoInterno.text.isNullOrBlank()) {
-            etCodigoInterno.error = "El código interno es obligatorio"
-            etCodigoInterno.requestFocus()
-            return
-        }
-
-        val precio = etPrecio.text.toString().toDoubleOrNull()
-        if (precio == null || precio < 0) {
-            etPrecio.error = "El precio debe ser un valor numérico positivo"
-            etPrecio.requestFocus()
-            return
-        }
-
         val dbHelper = DatabaseHelper(this)
-        val db = dbHelper.writableDatabase
-
-        val nuevoEstado = spinnerEstado.selectedItem.toString()
-
-        val values = ContentValues().apply {
-            put(DatabaseHelper.COL_NOMBRE, etNombre.text.toString().trim())
-            put(DatabaseHelper.COL_MARCA, etMarca.text.toString().trim())
-            put(DatabaseHelper.COL_MODELO, etModelo.text.toString().trim())
-            put(DatabaseHelper.COL_SERIE, etSerie.text.toString().trim())
-            put(DatabaseHelper.COL_CODIGO_INTERNO, etCodigoInterno.text.toString().trim())
-            put(DatabaseHelper.COL_DESCRIPCION, etDescripcion.text.toString().trim())
-            put(DatabaseHelper.COL_PRECIO, precio)
-            put(DatabaseHelper.COL_ESTADO, nuevoEstado)
-            if (fotoHerramientaBitmap != null) {
-                put(DatabaseHelper.COL_FOTO_HERRAMIENTA, convertirBitmapABlob(fotoHerramientaBitmap))
-            }
-        }
-
-        val rowsUpdated = db.update(
-            DatabaseHelper.TABLE_HERRAMIENTAS,
-            values,
-            "${DatabaseHelper.COL_ID_HERRAMIENTA} = ?",
-            arrayOf(herramientaId.toString())
+        val herramientaActualizada = Herramienta(
+            id = herramientaId,
+            nombre = etNombre.text.toString(),
+            marca = etMarca.text.toString(),
+            modelo = etModelo.text.toString(),
+            serie = etSerie.text.toString(),
+            codigoInterno = etCodigoInterno.text.toString(),
+            descripcion = etDescripcion.text.toString(),
+            precio = etPrecio.text.toString().toDouble(),
+            estado = spinnerEstado.selectedItem.toString(),
+            fotoHerramienta = fotoHerramientaBitmap?.let { convertirBitmapABlob(it) } // Convertir la nueva foto a ByteArray
         )
 
-        if (rowsUpdated > 0) {
-            Toast.makeText(this, "Herramienta actualizada", Toast.LENGTH_SHORT).show()
-            finish()
+        val rowsUpdated = dbHelper.actualizarHerramienta(herramientaActualizada)
+
+        if (rowsUpdated) {
+            Toast.makeText(this, "Herramienta actualizada correctamente", Toast.LENGTH_SHORT).show()
+            finish() // Cierra la actividad
         } else {
             Toast.makeText(this, "Error al actualizar la herramienta", Toast.LENGTH_SHORT).show()
         }
@@ -246,5 +168,22 @@ class EditarHerramientaActivity: AppCompatActivity() {
         val stream = ByteArrayOutputStream()
         bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
         return stream.toByteArray()
+    }
+
+    private fun setFieldsEnabled(enabled: Boolean) {
+        etNombre.isEnabled = enabled
+        etMarca.isEnabled = enabled
+        etModelo.isEnabled = enabled
+        etSerie.isEnabled = enabled
+        etCodigoInterno.isEnabled = enabled
+        etDescripcion.isEnabled = enabled
+        etPrecio.isEnabled = enabled
+
+        // El spinner solo estará habilitado si está en modo edición y tiene opciones válidas
+        spinnerEstado.isEnabled =
+            enabled && spinnerEstado.adapter != null && spinnerEstado.adapter.count > 0
+
+        // Botón para cambiar foto solo habilitado en modo edición
+        btnCambiarFoto.isEnabled = enabled
     }
 }

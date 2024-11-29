@@ -35,7 +35,10 @@
         <!-- RegistrarHerramientaActivity: Para registrar herramientas -->
         <activity android:name=".RegistrarHerramientaActivity" />
         <!-- EditarHerramienta: Para editar herramientas -->
-        <activity android:name=".EditarHerramientaActivity" />
+        <activity
+            android:name=".EditarHerramientaActivity"
+            android:theme="@style/CustomDialogTheme"
+            android:windowSoftInputMode="adjustResize" />
         <!-- EditarEmpleados: Para editar empleados -->
         <activity android:name=".EditarEmpleadoActivity" />
         <!-- ListaHerramientasActivity: Para ver la lista de herramientas -->
@@ -77,6 +80,7 @@
             android:name="android.support.FILE_PROVIDER_PATHS"
             android:resource="@xml/file_paths" />
     </provider>
+
 
     </application>
 

@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -20,9 +21,10 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 class HerramientaAdapter(
-    private val context: Context,
-    private var herramientas: List<Herramienta>,
-    private val listener: (List<Herramienta>) -> Unit
+
+private val context: Context,
+private var herramientas: List<Herramienta>,
+private val listener: (List<Herramienta>) -> Unit
 ) : RecyclerView.Adapter<HerramientaAdapter.HerramientaViewHolder>() {
 
     private val herramientasSeleccionadas = mutableListOf<Herramienta>()
@@ -84,9 +86,9 @@ class HerramientaAdapter(
                 eliminarHerramienta(herramienta)
             }
 
-            // Abrir popup de detalles al presionar el elemento
+            // Abrir la actividad de edición al presionar el elemento
             itemView.setOnClickListener {
-                mostrarPopupDetalles(herramienta)
+                abrirActividadEdicion(herramienta)
             }
         }
     }
@@ -108,92 +110,19 @@ class HerramientaAdapter(
                 .show()
         }
     }
-
-    private fun mostrarPopupDetalles(herramienta: Herramienta) {
-        // Realizar la consulta para obtener los datos más recientes
-        val dbHelper = DatabaseHelper(context)
-        val herramientaActualizada = dbHelper.obtenerHerramientaPorId(herramienta.id)
-
-        if (herramientaActualizada == null) {
-            Toast.makeText(context, "No se encontraron datos para esta herramienta", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.activity_editar_herramienta, null)
-        val dialog = AlertDialog.Builder(context).setView(dialogView).create()
-
-        val etNombre = dialogView.findViewById<EditText>(R.id.etNombre)
-        val etMarca = dialogView.findViewById<EditText>(R.id.etMarca)
-        val etModelo = dialogView.findViewById<EditText>(R.id.etModelo)
-        val etSerie = dialogView.findViewById<EditText>(R.id.etSerie)
-        val etCodigoInterno = dialogView.findViewById<EditText>(R.id.etCodigoInterno)
-        val etDescripcion = dialogView.findViewById<EditText>(R.id.etDescripcion)
-        val etPrecio = dialogView.findViewById<EditText>(R.id.etPrecio)
-        val spinnerEstado = dialogView.findViewById<Spinner>(R.id.spinnerEstadoHerramienta)
-        val imgFoto = dialogView.findViewById<ImageView>(R.id.imgFotoHerramienta)
-        val btnCambiarFoto = dialogView.findViewById<Button>(R.id.btnCambiarFoto)
-        val btnGuardar = dialogView.findViewById<Button>(R.id.btnGuardar)
-        val btnEditarCancelar = dialogView.findViewById<ImageButton>(R.id.btnEditarCancelar)
-
-        // Configurar campos con los datos más recientes
-        etNombre.setText(herramientaActualizada.nombre)
-        etMarca.setText(herramientaActualizada.marca ?: "")
-        etModelo.setText(herramientaActualizada.modelo ?: "")
-        etSerie.setText(herramientaActualizada.serie ?: "")
-        etCodigoInterno.setText(herramientaActualizada.codigoInterno ?: "")
-        etDescripcion.setText(herramientaActualizada.descripcion ?: "")
-        etPrecio.setText(herramientaActualizada.precio.toString())
-        spinnerEstado.setSelection(context.resources.getStringArray(R.array.estados_herramienta).indexOf(herramientaActualizada.estado))
-
-        if (herramientaActualizada.fotoHerramienta != null) {
-            val fotoBitmap = BitmapFactory.decodeByteArray(herramientaActualizada.fotoHerramienta, 0, herramientaActualizada.fotoHerramienta.size)
-            imgFoto.setImageBitmap(fotoBitmap)
-        } else {
-            imgFoto.setImageResource(R.drawable.ic_placeholder)
-        }
-
-        // Inicialmente, los campos están deshabilitados
-        setFieldsEnabled(false, etNombre, etMarca, etModelo, etSerie, etCodigoInterno, etDescripcion, etPrecio, spinnerEstado, btnCambiarFoto)
-
-        // Configurar funcionalidad del botón lápiz (editar/cancelar)
-        var enEdicion = false
-        btnEditarCancelar.setOnClickListener {
-            enEdicion = !enEdicion
-            setFieldsEnabled(enEdicion, etNombre, etMarca, etModelo, etSerie, etCodigoInterno, etDescripcion, etPrecio, spinnerEstado, btnCambiarFoto)
-            btnEditarCancelar.setImageResource(if (enEdicion) R.drawable.close else R.drawable.edit)
-            btnGuardar.visibility = if (enEdicion) View.VISIBLE else View.GONE
-        }
-
-        // Guardar los cambios
-        btnGuardar.setOnClickListener {
-            herramientaActualizada.nombre = etNombre.text.toString()
-            herramientaActualizada.marca = etMarca.text.toString()
-            herramientaActualizada.modelo = etModelo.text.toString()
-            herramientaActualizada.serie = etSerie.text.toString()
-            herramientaActualizada.codigoInterno = etCodigoInterno.text.toString()
-            herramientaActualizada.descripcion = etDescripcion.text.toString()
-            herramientaActualizada.precio = etPrecio.text.toString().toDouble()
-            herramientaActualizada.estado = spinnerEstado.selectedItem.toString()
-
-            dbHelper.actualizarHerramienta(herramientaActualizada)
-            (context as ListaHerramientasActivity).actualizarListaHerramientas()
-            dialog.dismiss()
-        }
-
-        dialog.show()
+    private fun abrirActividadEdicion(herramienta: Herramienta) {
+        val intent = Intent(context, EditarHerramientaActivity::class.java)
+        intent.putExtra("herramientaId", herramienta.id)
+        intent.putExtra("soloVisualizar", herramienta.estado == "Prestada") // Si está prestada, solo visualización
+        (context as Activity).startActivityForResult(intent, EDITAR_HERRAMIENTA_REQUEST_CODE)
     }
 
-    // Método para habilitar/deshabilitar los campos
-    private fun setFieldsEnabled(
-        enabled: Boolean,
-        vararg fields: View
-    ) {
-        fields.forEach { field ->
-            field.isEnabled = enabled
-        }
-    }
     fun actualizarLista(nuevaLista: List<Herramienta>) {
         herramientas = nuevaLista
         notifyDataSetChanged()
+    }
+
+    companion object {
+        const val EDITAR_HERRAMIENTA_REQUEST_CODE = 1
     }
 }

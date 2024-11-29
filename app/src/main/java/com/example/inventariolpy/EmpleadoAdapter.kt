@@ -7,6 +7,7 @@ import android.content.Intent
 import android.database.Cursor
 import android.graphics.BitmapFactory
 import android.text.InputType
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -44,6 +45,8 @@ class EmpleadoAdapter(private val context: Context, private var cursor: Cursor) 
         cursor.moveToPosition(position)
 
         val empleadoId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_EMPLEADO))
+        Log.d("EmpleadoAdapter", "getView - Posición: $position, Empleado ID: $empleadoId")
+
         val nombreEmpleado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE_EMPLEADO))
         val contacto = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CONTACTO))
         val fotoByteArray = cursor.getBlob(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_FOTO))
@@ -67,15 +70,20 @@ class EmpleadoAdapter(private val context: Context, private var cursor: Cursor) 
 
         // Configurar el clic en el botón de edición
         btnEditarEmpleado.setOnClickListener {
-            mostrarDialogoClaveAcceso { claveCorrecta ->
-                if (claveCorrecta) {
+            AlertDialog.Builder(context)
+                .setTitle("Confirmación")
+                .setMessage("¿Desea editar al empleado \"$nombreEmpleado\"?")
+                .setPositiveButton("Sí") { _, _ ->
+                    cursor.moveToPosition(position)
                     val intent = Intent(context, EditarEmpleadoActivity::class.java)
-                    intent.putExtra("empleadoId", cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_EMPLEADO)))
+                    intent.putExtra(
+                        "empleadoId",
+                        cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_EMPLEADO))
+                    )
                     context.startActivity(intent)
-                } else {
-                    Toast.makeText(context, "Clave incorrecta", Toast.LENGTH_SHORT).show()
                 }
-            }
+                .setNegativeButton("No", null)
+                .show()
         }
         btnEliminarEmpleado.setOnClickListener {
             validarYEliminarEmpleado(empleadoId, nombreEmpleado)
@@ -142,27 +150,7 @@ class EmpleadoAdapter(private val context: Context, private var cursor: Cursor) 
         )
         changeCursor(newCursor)
     }
-    private fun mostrarDialogoClaveAcceso(onClaveVerificada: (Boolean) -> Unit) {
-        val input = EditText(context).apply {
-            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-            hint = "Ingrese la clave de acceso"
-        }
 
-        AlertDialog.Builder(context)
-            .setTitle("Verificación de Clave")
-            .setMessage("Ingrese la clave de acceso para editar el empleado")
-            .setView(input)
-            .setPositiveButton("Aceptar") { dialog, _ ->
-                val claveIngresada = input.text.toString()
-                val claveCorrecta = claveIngresada == "Balance9731"
-                onClaveVerificada(claveCorrecta)
-                dialog.dismiss()
-            }
-            .setNegativeButton("Cancelar") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
-    }
 
     // Método para filtrar los datos
     fun filter(query: String) {

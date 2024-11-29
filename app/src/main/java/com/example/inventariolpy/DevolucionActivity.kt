@@ -32,6 +32,7 @@ class DevolucionActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private val herramientasActualizadas = mutableListOf<Herramienta>()
     private var nombreEmpleado: String = ""
+
     private var empleadoNfcId: String? = null
     private var empleadoQrId: String? = null
     private var nfcAdapter: NfcAdapter? = null
@@ -44,7 +45,6 @@ class DevolucionActivity : AppCompatActivity() {
         prestamoId = intent.getIntExtra("prestamoId", 0)
         herramientas = intent.getParcelableArrayListExtra("herramientas") ?: listOf()
         nombreEmpleado = intent.getStringExtra("nombreEmpleado") ?: ""
-
 
         // Obtener NFC y QR del empleado
         empleadoNfcId = intent.getStringExtra("empleadoNfcId")

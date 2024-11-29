@@ -19,12 +19,12 @@ data class Herramienta(
         parcel.readInt(),
         parcel.readString() ?: "",
         parcel.readString() ?: "",
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
+        parcel.readString()?: "",
+        parcel.readString()?: "",
+        parcel.readString()?: "",
+        parcel.readString()?: "",
         parcel.createByteArray(),
-        parcel.readString(),
+        parcel.readString()?: "",
         parcel.readDouble()
     )
 

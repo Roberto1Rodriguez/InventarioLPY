@@ -3,6 +3,7 @@ package com.example.inventariolpy
 import android.content.Intent
 import android.database.Cursor
 import android.os.Bundle
+import android.util.Log
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -29,6 +30,7 @@ class ListaPrestamosActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_lista_prestamos)
 
@@ -44,6 +46,16 @@ class ListaPrestamosActivity : AppCompatActivity() {
             cargarListaPrestamos(listView, "Activo")
         }
 
+        // Instancia de DatabaseHelper
+        val dbHelper = DatabaseHelper(this)
+
+        // Llamar al método para mostrar herramientas
+        val herramientas = dbHelper.mostrarTodasLasHerramientas()
+
+        // Imprimir en el Logcat para verificar los datos
+        herramientas.forEach { herramienta ->
+            Log.d("Herramienta", "ID: ${herramienta.id}, Nombre: ${herramienta.nombre}, Código: ${herramienta.codigoInterno}, Marca: ${herramienta.marca}")
+        }
         // Al hacer clic en "Ver Devueltas", cargar solo las devueltas
         btnVerDevueltas.setOnClickListener {
             cargarListaPrestamos(listView, "Devuelto")
@@ -62,6 +74,9 @@ class ListaPrestamosActivity : AppCompatActivity() {
                 } else {
                     // Obtener todas las herramientas asociadas al préstamo desde la tabla intermedia
                     val herramientas = obtenerHerramientasPorPrestamo(prestamoId)
+                    herramientas.forEach { herramienta ->
+                        Log.d("Herramienta", "Nombre: ${herramienta.nombre}, Código: ${herramienta.codigoInterno}, Marca: ${herramienta.marca}")
+                    }
 
                     // Obtener nombre del empleado y firma
                     val (nombreEmpleado, firmaEmpleado) = obtenerDatosEmpleadoPorPrestamo(prestamoId)
@@ -235,10 +250,12 @@ class ListaPrestamosActivity : AppCompatActivity() {
         val db = dbHelper.readableDatabase
 
         val query = """
-        SELECT h.${DatabaseHelper.COL_ID_HERRAMIENTA}, h.${DatabaseHelper.COL_NOMBRE}, h.${DatabaseHelper.COL_ESTADO}
-        FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
-        JOIN ${DatabaseHelper.TABLE_HERRAMIENTAS} h ON ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
-        WHERE ph.${DatabaseHelper.COL_PRESTAMO_ID} = ?
+    SELECT h.${DatabaseHelper.COL_ID_HERRAMIENTA}, h.${DatabaseHelper.COL_NOMBRE}, 
+           h.${DatabaseHelper.COL_ESTADO}, h.${DatabaseHelper.COL_CODIGO_INTERNO}, h.${DatabaseHelper.COL_MARCA}
+    FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
+    JOIN ${DatabaseHelper.TABLE_HERRAMIENTAS} h 
+    ON ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
+    WHERE ph.${DatabaseHelper.COL_PRESTAMO_ID} = ?
     """
         val cursor = db.rawQuery(query, arrayOf(prestamoId.toString()))
 
@@ -247,7 +264,9 @@ class ListaPrestamosActivity : AppCompatActivity() {
             val id = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_HERRAMIENTA))
             val nombre = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE))
             val estado = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO))
-            herramientas.add(Herramienta(id, nombre, estado))
+            val codigoInterno = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_CODIGO_INTERNO))
+            val marca = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_MARCA))
+            herramientas.add(Herramienta(id, nombre, estado, marca, null, null, codigoInterno, null,null, 0.0))
         }
         cursor.close()
 

@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory
 import android.nfc.NfcAdapter
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Window
 import android.view.WindowManager
 import android.widget.Button
@@ -55,6 +56,7 @@ class EditarEmpleadoActivity : AppCompatActivity() {
 
         // Obtener el ID del empleado a editar
         empleadoId = intent.getIntExtra("empleadoId", 0)
+        Log.d("EditarEmpleadoActivity", "Empleado ID recibido: $empleadoId")
 
         // Cargar los datos del empleado desde la base de datos
         cargarDatosEmpleado()

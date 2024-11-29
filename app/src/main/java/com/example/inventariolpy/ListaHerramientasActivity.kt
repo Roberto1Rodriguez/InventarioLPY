@@ -19,6 +19,7 @@ import android.widget.SearchView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.core.content.FileProvider
 
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -39,7 +40,12 @@ import java.util.Locale
         private lateinit var adapter: HerramientaAdapter
         private val herramientasSeleccionadas = mutableListOf<Herramienta>()
         private val herramientas = mutableListOf<Herramienta>()
-
+        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+            super.onActivityResult(requestCode, resultCode, data)
+            if (requestCode == HerramientaAdapter.EDITAR_HERRAMIENTA_REQUEST_CODE && resultCode == RESULT_OK) {
+                actualizarListaHerramientas()
+            }
+        }
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             setContentView(R.layout.activity_lista_herramientas)
@@ -202,220 +208,158 @@ import java.util.Locale
             startActivity(intent)
         }
 
-
         private fun generarReporteInventario() {
             val dbHelper = DatabaseHelper(this)
             val db = dbHelper.readableDatabase
             val query = """
-    SELECT 
-        h.${DatabaseHelper.COL_ID_HERRAMIENTA} AS id, 
-        h.${DatabaseHelper.COL_CODIGO_INTERNO} AS codigoInterno,
-        h.${DatabaseHelper.COL_NOMBRE} AS nombre, 
-        h.${DatabaseHelper.COL_ESTADO} AS estado, 
-        h.${DatabaseHelper.COL_MARCA} AS marca, 
-        h.${DatabaseHelper.COL_MODELO} AS modelo, 
-        h.${DatabaseHelper.COL_PRECIO} AS precio, 
-        CASE 
-            WHEN h.${DatabaseHelper.COL_ESTADO} IN ('Prestada', 'Rota', 'Perdida') THEN 
-                (SELECT p.${DatabaseHelper.COL_NOMBRE_EMPLEADO} 
-                 FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
-                 JOIN ${DatabaseHelper.TABLE_PRESTAMOS} pr 
-                 ON ph.${DatabaseHelper.COL_PRESTAMO_ID} = pr.${DatabaseHelper.COL_ID_PRESTAMO} 
-                 JOIN ${DatabaseHelper.TABLE_EMPLEADOS} p 
-                 ON pr.${DatabaseHelper.COL_EMPLEADO_ID} = p.${DatabaseHelper.COL_ID_EMPLEADO}
-                 WHERE ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
-                 ORDER BY pr.${DatabaseHelper.COL_FECHA_PRESTAMO} DESC
-                 LIMIT 1
-                ) 
-            ELSE 'N/A' 
-        END AS nombreEmpleado, 
-        CASE 
-            WHEN h.${DatabaseHelper.COL_ESTADO} IN ('Prestada', 'Rota', 'Perdida') THEN 
-                (SELECT pr.${DatabaseHelper.COL_FECHA_PRESTAMO} 
-                 FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
-                 JOIN ${DatabaseHelper.TABLE_PRESTAMOS} pr 
-                 ON ph.${DatabaseHelper.COL_PRESTAMO_ID} = pr.${DatabaseHelper.COL_ID_PRESTAMO} 
-                 WHERE ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
-                 ORDER BY pr.${DatabaseHelper.COL_FECHA_PRESTAMO} DESC
-                 LIMIT 1
-                ) 
-            ELSE '' 
-        END AS fecha_prestamo 
-    FROM 
-        ${DatabaseHelper.TABLE_HERRAMIENTAS} h
-"""
+        SELECT 
+            h.${DatabaseHelper.COL_ID_HERRAMIENTA} AS id, 
+            h.${DatabaseHelper.COL_CODIGO_INTERNO} AS codigoInterno,
+            h.${DatabaseHelper.COL_NOMBRE} AS nombre, 
+            h.${DatabaseHelper.COL_ESTADO} AS estado, 
+            h.${DatabaseHelper.COL_MARCA} AS marca, 
+            h.${DatabaseHelper.COL_MODELO} AS modelo, 
+            h.${DatabaseHelper.COL_PRECIO} AS precio, 
+            h.activo AS activo,
+            CASE 
+                WHEN h.${DatabaseHelper.COL_ESTADO} IN ('Prestada', 'Rota', 'Perdida') THEN 
+                    (SELECT p.${DatabaseHelper.COL_NOMBRE_EMPLEADO} 
+                     FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
+                     JOIN ${DatabaseHelper.TABLE_PRESTAMOS} pr 
+                     ON ph.${DatabaseHelper.COL_PRESTAMO_ID} = pr.${DatabaseHelper.COL_ID_PRESTAMO} 
+                     JOIN ${DatabaseHelper.TABLE_EMPLEADOS} p 
+                     ON pr.${DatabaseHelper.COL_EMPLEADO_ID} = p.${DatabaseHelper.COL_ID_EMPLEADO}
+                     WHERE ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
+                     ORDER BY pr.${DatabaseHelper.COL_FECHA_PRESTAMO} DESC
+                     LIMIT 1
+                    ) 
+                ELSE 'N/A' 
+            END AS nombreEmpleado, 
+            CASE 
+                WHEN h.${DatabaseHelper.COL_ESTADO} IN ('Prestada', 'Rota', 'Perdida') THEN 
+                    (SELECT pr.${DatabaseHelper.COL_FECHA_PRESTAMO} 
+                     FROM ${DatabaseHelper.TABLE_PRESTAMO_HERRAMIENTAS} ph
+                     JOIN ${DatabaseHelper.TABLE_PRESTAMOS} pr 
+                     ON ph.${DatabaseHelper.COL_PRESTAMO_ID} = pr.${DatabaseHelper.COL_ID_PRESTAMO} 
+                     WHERE ph.${DatabaseHelper.COL_HERRAMIENTA_ID} = h.${DatabaseHelper.COL_ID_HERRAMIENTA}
+                     ORDER BY pr.${DatabaseHelper.COL_FECHA_PRESTAMO} DESC
+                     LIMIT 1
+                    ) 
+                ELSE '' 
+            END AS fecha_prestamo 
+        FROM 
+            ${DatabaseHelper.TABLE_HERRAMIENTAS} h
+    """
             val cursor = db.rawQuery(query, null)
 
             val herramientas = mutableListOf<HerramientaReporte>()
             while (cursor.moveToNext()) {
-                val id = cursor.getInt(cursor.getColumnIndexOrThrow("id")) // Usa el alias "id"
-                val codigoInterno =
-                    cursor.getString(cursor.getColumnIndexOrThrow("codigoInterno")) ?: "N/A"
+                val id = cursor.getInt(cursor.getColumnIndexOrThrow("id"))
+                val codigoInterno = cursor.getString(cursor.getColumnIndexOrThrow("codigoInterno")) ?: "N/A"
                 val nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")) ?: "N/A"
                 val estado = cursor.getString(cursor.getColumnIndexOrThrow("estado")) ?: "N/A"
                 val marca = cursor.getString(cursor.getColumnIndexOrThrow("marca")) ?: "N/A"
                 val modelo = cursor.getString(cursor.getColumnIndexOrThrow("modelo")) ?: "N/A"
                 val precio = cursor.getDouble(cursor.getColumnIndexOrThrow("precio"))
-                val nombreEmpleado =
-                    cursor.getString(cursor.getColumnIndexOrThrow("nombreEmpleado"))
-                        ?: "N/A" // Usa el alias "nombreEmpleado"
+                val activo = cursor.getInt(cursor.getColumnIndexOrThrow("activo")) // Nuevo campo
+                val nombreEmpleado = cursor.getString(cursor.getColumnIndexOrThrow("nombreEmpleado")) ?: "N/A"
                 val fechaPrestamo = cursor.getLong(cursor.getColumnIndexOrThrow("fecha_prestamo"))
+
                 herramientas.add(
                     HerramientaReporte(
-                        id,
-                        codigoInterno,
-                        nombre,
-                        estado,
-                        marca,
-                        modelo,
-                        precio,
-                        nombreEmpleado ?: "N/A",
-                        if (fechaPrestamo > 0) SimpleDateFormat(
+                        id = id,
+                        codigoInterno = codigoInterno,
+                        nombre = nombre,
+                        estado = estado,
+                        marca = marca,
+                        modelo = modelo,
+                        precio = precio,
+                        nombreEmpleado = nombreEmpleado,
+                        fechaPrestamo = if (fechaPrestamo > 0) SimpleDateFormat(
                             "dd/MM/yyyy",
                             Locale.getDefault()
-                        ).format(
-                            Date(fechaPrestamo)
-                        ) else "N/A"
+                        ).format(Date(fechaPrestamo)) else "N/A",
+                        activo = activo
                     )
                 )
-                Log.d(
-                    "CursorDebug",
-                    "Nombre Herramienta: $nombre, Nombre Empleado: $nombreEmpleado"
-                )
-
             }
             cursor.close()
 
-            generarReporteExcel(herramientas)
+            generarReporteExcelYCompartir(herramientas)
         }
 
-        private fun generarReporteExcel(herramientas: List<HerramientaReporte>) {
+        private fun generarReporteExcelYCompartir(herramientas: List<HerramientaReporte>) {
             val sdf = SimpleDateFormat("dd-MM-yyyy_HH-mm-ss", Locale.getDefault())
             val fechaActual = sdf.format(Date())
             val fileName = "Reporte_Inventario_$fechaActual.xls"
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                val values = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "application/vnd.ms-excel")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            val workbook = HSSFWorkbook()
+            val sheet = workbook.createSheet("Reporte Inventario")
+            val headerRow = sheet.createRow(0)
+
+            // Encabezados del reporte
+            headerRow.createCell(0).setCellValue("ID Herramienta")
+            headerRow.createCell(1).setCellValue("Codigo Interno")
+            headerRow.createCell(2).setCellValue("Nombre")
+            headerRow.createCell(3).setCellValue("Estado")
+            headerRow.createCell(4).setCellValue("Marca")
+            headerRow.createCell(5).setCellValue("Modelo")
+            headerRow.createCell(6).setCellValue("Precio")
+            headerRow.createCell(7).setCellValue("Empleado (si prestada)")
+            headerRow.createCell(8).setCellValue("Fecha Préstamo (si aplicable)")
+            headerRow.createCell(9).setCellValue("Activo") // Nuevo campo
+
+            herramientas.forEachIndexed { index, herramienta ->
+                val row = sheet.createRow(index + 1)
+                row.createCell(0).setCellValue(herramienta.id.toDouble())
+                row.createCell(1).setCellValue(herramienta.codigoInterno)
+                row.createCell(2).setCellValue(herramienta.nombre)
+                row.createCell(3).setCellValue(herramienta.estado)
+                row.createCell(4).setCellValue(herramienta.marca)
+                row.createCell(5).setCellValue(herramienta.modelo)
+                row.createCell(6).setCellValue(herramienta.precio)
+                row.createCell(7).setCellValue(herramienta.nombreEmpleado)
+                row.createCell(8).setCellValue(herramienta.fechaPrestamo)
+                row.createCell(9).setCellValue(if (herramienta.activo == 1) "Activo" else "Inactivo")
+            }
+
+            try {
+                val file = File(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS), fileName)
+
+                FileOutputStream(file).use { outputStream ->
+                    workbook.write(outputStream)
                 }
-                val uri = contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
-                if (uri != null) {
-                    try {
-                        val workbook = HSSFWorkbook()
-                        val sheet = workbook.createSheet("Reporte Inventario")
-                        val headerRow = sheet.createRow(0)
-                        headerRow.createCell(0).setCellValue("ID Herramienta")
-                        headerRow.createCell(1).setCellValue("Codigo Interno")
-                        headerRow.createCell(2).setCellValue("Nombre")
-                        headerRow.createCell(3).setCellValue("Estado")
-                        headerRow.createCell(4).setCellValue("Marca")
-                        headerRow.createCell(5).setCellValue("Modelo")
-                        headerRow.createCell(6).setCellValue("Precio")
-                        headerRow.createCell(7).setCellValue("Empleado (si prestada)")
-                        headerRow.createCell(8).setCellValue("Fecha Préstamo (si aplicable)")
+                workbook.close()
 
-                        herramientas.forEachIndexed { index, herramienta ->
-                            val row = sheet.createRow(index + 1)
-                            row.createCell(0).setCellValue(herramienta.id.toDouble())
-                            row.createCell(1).setCellValue(herramienta.codigoInterno)
-                            row.createCell(2).setCellValue(herramienta.nombre)
-                            row.createCell(3).setCellValue(herramienta.estado)
-                            row.createCell(4).setCellValue(herramienta.marca)
-                            row.createCell(5).setCellValue(herramienta.modelo)
-                            row.createCell(6).setCellValue(herramienta.precio)
-                            row.createCell(7).setCellValue(herramienta.nombreEmpleado)
-                            row.createCell(8).setCellValue(herramienta.fechaPrestamo)
-                        }
+                Toast.makeText(this, "Reporte generado: ${file.absolutePath}", Toast.LENGTH_LONG).show()
 
-                        contentResolver.openOutputStream(uri).use { outputStream ->
-                            workbook.write(outputStream)
-                        }
-                        workbook.close()
-
-                        Toast.makeText(this, "Reporte descargado: $fileName", Toast.LENGTH_LONG)
-                            .show()
-                        mostrarNotificacionDescarga(fileName)
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                        Toast.makeText(this, "Error al generar el reporte", Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                }
-            } else {
-                val downloadsDir =
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                val file = File(downloadsDir, fileName)
-
-                try {
-                    val workbook = HSSFWorkbook()
-                    val sheet = workbook.createSheet("Reporte Inventario")
-                    val headerRow = sheet.createRow(0)
-                    headerRow.createCell(0).setCellValue("ID Herramienta")
-                    headerRow.createCell(1).setCellValue("Codigo Interno")
-                    headerRow.createCell(2).setCellValue("Nombre")
-                    headerRow.createCell(3).setCellValue("Estado")
-                    headerRow.createCell(4).setCellValue("Marca")
-                    headerRow.createCell(5).setCellValue("Modelo")
-                    headerRow.createCell(6).setCellValue("Precio")
-                    headerRow.createCell(7).setCellValue("Empleado (si prestada)")
-                    headerRow.createCell(8).setCellValue("Fecha Préstamo (si aplicable)")
-
-                    herramientas.forEachIndexed { index, herramienta ->
-                        val row = sheet.createRow(index + 1)
-                        row.createCell(0).setCellValue(herramienta.id.toDouble())
-                        row.createCell(1).setCellValue(herramienta.codigoInterno)
-                        row.createCell(2).setCellValue(herramienta.nombre)
-                        row.createCell(3).setCellValue(herramienta.estado)
-                        row.createCell(4).setCellValue(herramienta.marca)
-                        row.createCell(5).setCellValue(herramienta.modelo)
-                        row.createCell(6).setCellValue(herramienta.precio)
-                        row.createCell(7).setCellValue(herramienta.nombreEmpleado)
-                        row.createCell(8).setCellValue(herramienta.fechaPrestamo)
-                    }
-
-                    FileOutputStream(file).use { outputStream ->
-                        workbook.write(outputStream)
-                    }
-                    workbook.close()
-
-                    Toast.makeText(
-                        this,
-                        "Reporte descargado: ${file.absolutePath}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    mostrarNotificacionDescarga(fileName)
-
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    Toast.makeText(this, "Error al generar el reporte", Toast.LENGTH_SHORT).show()
-                }
+                // Compartir el archivo
+                compartirArchivo(file)
+            } catch (e: IOException) {
+                e.printStackTrace()
+                Toast.makeText(this, "Error al generar el reporte", Toast.LENGTH_SHORT).show()
             }
         }
 
-        private fun mostrarNotificacionDescarga(fileName: String) {
-            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            val channelId = "descarga_reporte_excel"
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val channel = NotificationChannel(
-                    channelId,
-                    "Descargas",
-                    NotificationManager.IMPORTANCE_DEFAULT
-                ).apply {
-                    description = "Notificación de Descarga de Reporte"
-                }
-                notificationManager.createNotificationChannel(channel)
+        private fun compartirArchivo(file: File) {
+            val uri: Uri = FileProvider.getUriForFile(
+                this,
+                "com.example.inventariolpy.provider", // Autoridad configurada en el manifest
+                file
+            )
+
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/vnd.ms-excel" // MIME type para archivos Excel
+                putExtra(Intent.EXTRA_STREAM, uri)
+                putExtra(Intent.EXTRA_SUBJECT, "Reporte de Inventario")
+                putExtra(Intent.EXTRA_TEXT, "Se adjunta el reporte de inventario generado.")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            val builder = NotificationCompat.Builder(this, channelId)
-                .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentTitle("Descarga Completa")
-                .setContentText("El reporte $fileName ha sido descargado")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-
-            notificationManager.notify(System.currentTimeMillis().toInt(), builder.build())
+            startActivity(Intent.createChooser(intent, "Compartir reporte a través de"))
         }
+
+
     }
 
 
@@ -428,5 +372,6 @@ data class HerramientaReporte(
     val modelo: String,
     val precio: Double,
     val nombreEmpleado: String,
-    val fechaPrestamo: String
+    val fechaPrestamo: String,
+    val activo:Int
 )

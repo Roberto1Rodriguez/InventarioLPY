@@ -1,5 +1,6 @@
 package com.example.inventariolpy
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,8 +36,9 @@ class HerramientaDevolucionAdapter(
         fun tieneRadioButtonSeleccionado(): Boolean {
             return radioGroup.checkedRadioButtonId != -1 // Retorna `true` si hay un `RadioButton` seleccionado
         }
+        @SuppressLint("SetTextI18n")
         fun bind(herramienta: Herramienta) {
-            tvNombreHerramienta.text = herramienta.nombre
+            tvNombreHerramienta.text = "${herramienta.nombre} (Código: ${herramienta.codigoInterno ?: "Sin código"}) - ${herramienta.marca ?: "Sin marca"}"
 
             // Seleccionar el estado actual
             when (herramienta.estado) {

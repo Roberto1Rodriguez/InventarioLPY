@@ -2,7 +2,6 @@
     <string name="app_name">Balance</string>
     <string-array name="estados_herramienta">
         <item>Disponible</item>
-        <item>Prestada</item>
         <item>Rota</item>
         <item>Perdida</item>
     </string-array>
