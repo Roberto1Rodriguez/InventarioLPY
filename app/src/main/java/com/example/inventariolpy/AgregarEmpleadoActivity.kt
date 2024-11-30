@@ -89,25 +89,7 @@ class AgregarEmpleadoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback {
         startActivityForResult(intent, CODIGO_FOTO)
     }
 
-    private fun capturarFirma() {
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_captura_firma)
 
-        // Establece dimensiones para hacer que el diálogo se vea horizontal
-        val params = WindowManager.LayoutParams()
-        params.copyFrom(dialog.window?.attributes) // Copia los atributos actuales de la ventana
-        params.width = WindowManager.LayoutParams.MATCH_PARENT // O un tamaño fijo como 800
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT // Ajusta según sea necesario
-        dialog.window?.attributes = params
-
-        val btnGuardarFirma = dialog.findViewById<Button>(R.id.btnGuardarFirma)
-        val signaturePad = dialog.findViewById<SignaturePad>(R.id.signaturePad)
-
-
-
-        dialog.show()
-    }
     private lateinit var nfcDialog: AlertDialog
 
     private fun iniciarCapturaNFC() {

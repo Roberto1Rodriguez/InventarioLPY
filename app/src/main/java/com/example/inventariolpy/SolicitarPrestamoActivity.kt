@@ -106,17 +106,19 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
     }
 
     private fun mostrarPopupAutenticacion() {
-        val opciones = if (nfcAdapter != null) {
-            arrayOf("NFC", "QR") // Ambas opciones si NFC está disponible
+        val opciones = if (!empleadoNfcId.isNullOrEmpty()) {
+            // Si el empleado tiene NFC registrado, mostrar ambas opciones
+            arrayOf("NFC", "QR")
         } else {
-            arrayOf("QR") // Solo opción QR si NFC no está disponible
+            // Si el empleado no tiene NFC registrado, mostrar solo QR
+            arrayOf("QR")
         }
 
         AlertDialog.Builder(this)
             .setTitle("Método de Autenticación")
             .setItems(opciones) { _, which ->
                 when (which) {
-                    0 -> if (nfcAdapter != null) iniciarAutenticacionNFC() else iniciarEscaneoQR()
+                    0 -> if (!empleadoNfcId.isNullOrEmpty()) iniciarAutenticacionNFC() else iniciarEscaneoQR()
                     1 -> iniciarEscaneoQR()
                 }
             }
@@ -282,8 +284,22 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
             Log.d("SolicitarPrestamo", "Préstamo registrado con ID: $prestamoId")
         }
 
-        // Inserción de cada herramienta en la tabla intermedia y actualización de estado
-        herramientasSeleccionadas.forEach { herramienta ->
+        // Filtrar herramientas seleccionadas que estén disponibles
+        val herramientasDisponibles = herramientasSeleccionadas.filter { herramienta ->
+            val cursor = db.rawQuery(
+                "SELECT ${DatabaseHelper.COL_ESTADO} FROM ${DatabaseHelper.TABLE_HERRAMIENTAS} WHERE ${DatabaseHelper.COL_ID_HERRAMIENTA} = ?",
+                arrayOf(herramienta.id.toString())
+            )
+            var disponible = false
+            if (cursor.moveToFirst()) {
+                disponible = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ESTADO)) == "Disponible"
+            }
+            cursor.close()
+            disponible
+        }
+
+        // Inserción de cada herramienta disponible en la tabla intermedia y actualización de estado
+        herramientasDisponibles.forEach { herramienta ->
             val valuesIntermedia = ContentValues().apply {
                 put(DatabaseHelper.COL_PRESTAMO_ID, prestamoId)
                 put(DatabaseHelper.COL_HERRAMIENTA_ID, herramienta.id)
@@ -309,7 +325,13 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
                 Log.d("SolicitarPrestamo", "Estado de la herramienta ${herramienta.nombre} actualizado a Prestada")
             }
         }
-        Toast.makeText(this, "Préstamo realizado con éxito", Toast.LENGTH_SHORT).show()
+
+        if (herramientasDisponibles.isEmpty()) {
+            Toast.makeText(this, "No hay herramientas disponibles para el préstamo", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "Préstamo realizado con éxito", Toast.LENGTH_SHORT).show()
+        }
+
         Log.d("SolicitarPrestamo", "Préstamo realizado con éxito")
         finish()
     }

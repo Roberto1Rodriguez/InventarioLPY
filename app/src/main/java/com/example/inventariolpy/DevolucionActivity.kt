@@ -73,35 +73,42 @@ class DevolucionActivity : AppCompatActivity() {
     private fun mostrarPopupAutenticacion() {
         // Verificar si todas las herramientas tienen un `RadioButton` seleccionado
         val herramientasSinSeleccion = herramientas.any { herramienta ->
-            val viewHolder = recyclerView.findViewHolderForAdapterPosition(herramientas.indexOf(herramienta)) as? HerramientaDevolucionAdapter.HerramientaViewHolder
+            val viewHolder =
+                recyclerView.findViewHolderForAdapterPosition(herramientas.indexOf(herramienta)) as? HerramientaDevolucionAdapter.HerramientaViewHolder
             viewHolder?.let {
                 !it.tieneRadioButtonSeleccionado() // Verificar si el ViewHolder tiene algún RadioButton seleccionado
             } ?: true // Considerar como no seleccionado si el ViewHolder es nulo
         }
 
         if (herramientasSinSeleccion) {
-            Toast.makeText(this, "Debes seleccionar un estado para todas las herramientas", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Debes seleccionar un estado para todas las herramientas",
+                Toast.LENGTH_SHORT
+            ).show()
             return // Detener la ejecución si hay herramientas sin un estado seleccionado
         }
 
-        // Continuar con el proceso de autenticación
-        val opciones = if (nfcAdapter != null) {
-            arrayOf("NFC", "QR")
-        } else {
-            arrayOf("QR")
+            val opciones = if (!empleadoNfcId.isNullOrEmpty()) {
+                // Si el empleado tiene NFC registrado, mostrar ambas opciones
+                arrayOf("NFC", "QR")
+            } else {
+                // Si el empleado no tiene NFC registrado, mostrar solo QR
+                arrayOf("QR")
+            }
+
+            AlertDialog.Builder(this)
+                .setTitle("Método de Autenticación")
+                .setItems(opciones) { _, which ->
+                    when (which) {
+                        0 -> if (!empleadoNfcId.isNullOrEmpty()) iniciarAutenticacionNFC() else iniciarEscaneoQR()
+                        1 -> iniciarEscaneoQR()
+                    }
+                }
+                .setCancelable(true)
+                .show()
         }
 
-        AlertDialog.Builder(this)
-            .setTitle("Método de Autenticación")
-            .setItems(opciones) { _, which ->
-                when (which) {
-                    0 -> if (nfcAdapter != null) iniciarAutenticacionNFC() else iniciarEscaneoQR()
-                    1 -> iniciarEscaneoQR()
-                }
-            }
-            .setCancelable(true)
-            .show()
-    }
     private fun iniciarAutenticacionNFC() {
         val nfcAuthDialog = AlertDialog.Builder(this)
             .setTitle("Autenticación NFC")

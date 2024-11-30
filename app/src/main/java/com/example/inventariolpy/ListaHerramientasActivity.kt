@@ -200,12 +200,47 @@ import java.util.Locale
         }
 
         private fun iniciarSolicitudPrestamo() {
-            val intent = Intent(this, SolicitarPrestamoActivity::class.java)
-            intent.putParcelableArrayListExtra(
-                "herramientasSeleccionadas",
-                ArrayList(herramientasSeleccionadas)
+            val dbHelper = DatabaseHelper(this)
+            val db = dbHelper.readableDatabase
+
+            // Consulta para contar empleados activos
+            val cursor = db.rawQuery(
+                "SELECT COUNT(*) AS cantidad FROM ${DatabaseHelper.TABLE_EMPLEADOS} WHERE ${DatabaseHelper.COL_ESTADO_EMPLEADO} != ?",
+                arrayOf("Inactivo")
             )
-            startActivity(intent)
+
+            var empleadosActivos = 0
+            if (cursor.moveToFirst()) {
+                empleadosActivos = cursor.getInt(cursor.getColumnIndexOrThrow("cantidad"))
+            }
+            cursor.close()
+
+            if (empleadosActivos == 0) {
+                // Mostrar mensaje si no hay empleados activos
+                Toast.makeText(
+                    this,
+                    "No se puede realizar el préstamo porque no hay empleados activos.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                // Continuar con la solicitud si hay empleados activos
+                val herramientasValidas =
+                    herramientasSeleccionadas.filter { it.estado == "Disponible" }
+                if (herramientasValidas.isEmpty()) {
+                    Toast.makeText(
+                        this,
+                        "No hay herramientas disponibles para el préstamo",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    val intent = Intent(this, SolicitarPrestamoActivity::class.java)
+                    intent.putParcelableArrayListExtra(
+                        "herramientasSeleccionadas",
+                        ArrayList(herramientasValidas)
+                    )
+                    startActivity(intent)
+                }
+            }
         }
 
         private fun generarReporteInventario() {

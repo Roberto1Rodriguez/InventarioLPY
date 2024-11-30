@@ -97,11 +97,18 @@ class EditarHerramientaActivity: AppCompatActivity() {
             etDescripcion.setText(herramienta.descripcion)
             etPrecio.setText(herramienta.precio.toString())
 
-            // Configurar opciones del spinner
+            // Obtener los estados y filtrar "Prestada"
             val estados = resources.getStringArray(R.array.estados_herramienta).toMutableList()
+            if (herramienta.estado != "Prestada") {
+                estados.remove("Prestada") // Remueve "Prestada" solo si no es el estado actual
+            }
+
+            // Configurar opciones del spinner
             val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, estados)
             spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinnerEstado.adapter = spinnerAdapter
+
+            // Seleccionar el estado actual
             spinnerEstado.setSelection(spinnerAdapter.getPosition(herramienta.estado))
 
             // Cargar foto de la herramienta
@@ -118,8 +125,7 @@ class EditarHerramientaActivity: AppCompatActivity() {
             if (herramienta.estado == "Prestada") {
                 setFieldsEnabled(false) // Deshabilitar todo si está prestada
             } else {
-                // Configura el `Spinner` para que esté deshabilitado inicialmente
-                spinnerEstado.isEnabled = false
+                spinnerEstado.isEnabled = false // Spinner deshabilitado inicialmente
                 setFieldsEnabled(false) // Deshabilitar otros campos de manera inicial
             }
         }
