@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -33,9 +34,9 @@ class MainActivity : AppCompatActivity() {
 
         dbHelper = DatabaseHelper(this)
 
-        val btnListaHerramientas: Button = findViewById(R.id.btnListaHerramientas)
-        val btnListaPrestamos: Button = findViewById(R.id.btnListaPrestamos)
-        val btnVerEmpleados: Button = findViewById(R.id.btnVerEmpleados)
+        val btnListaHerramientas: LinearLayout = findViewById(R.id.btnListaHerramientas)
+        val btnListaPrestamos: LinearLayout = findViewById(R.id.btnListaPrestamos)
+        val btnVerEmpleados: LinearLayout = findViewById(R.id.btnVerEmpleados)
 
         btnListaHerramientas.setOnClickListener {
             val intent = Intent(this, ListaHerramientasActivity::class.java)
@@ -58,7 +59,20 @@ class MainActivity : AppCompatActivity() {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
+    override fun onResume() {
+        super.onResume()
 
+        // Verificar si debe abrir la lista de herramientas
+        val abrirLista = intent.getBooleanExtra("abrirListaHerramientas", false)
+        if (abrirLista) {
+            // Restablecer el indicador para evitar reabrir la lista al regresar
+            intent.removeExtra("abrirListaHerramientas")
+
+            // Iniciar ListaHerramientasActivity
+            val intent = Intent(this, ListaHerramientasActivity::class.java)
+            startActivity(intent)
+        }
+    }
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_export -> {

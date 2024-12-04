@@ -13,7 +13,8 @@ data class Herramienta(
     var codigoInterno: String? = null,
     val fotoHerramienta: ByteArray? = null, // Para imágenes
     var descripcion: String? = null,
-    var precio: Double = 0.0 // Por defecto es 0 si no se proporciona un valor
+    var precio: Double = 0.0, // Por defecto es 0 si no se proporciona un valor
+    var isSelected: Boolean = false
 ): Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readInt(),

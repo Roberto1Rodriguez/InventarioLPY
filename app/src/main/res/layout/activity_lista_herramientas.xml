@@ -55,9 +55,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
-        android:tint="@android:color/black"
         android:contentDescription="Solicitar Préstamo"
         android:src="@android:drawable/ic_input_add"
+        android:tint="@color/white"
         app:backgroundTint="#FF0000" />
 
 </FrameLayout>

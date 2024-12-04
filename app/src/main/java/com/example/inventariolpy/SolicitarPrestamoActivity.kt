@@ -1,6 +1,7 @@
 package com.example.inventariolpy
 
 import android.Manifest
+import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -152,7 +153,7 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
                 Toast.makeText(this, "Autenticación NFC exitosa", Toast.LENGTH_SHORT).show()
                 prestamoConfirmado = true
                 nfcAuthDialog?.dismiss() // Cerrar el diálogo de autenticación NFC
-                realizarPrestamo() // Realiza el préstamo si la autenticación es exitosa
+                confirmarPrestamo() // Confirmar el préstamo
             } else {
                 Toast.makeText(this, "ID de tarjeta no coincide", Toast.LENGTH_SHORT).show()
             }
@@ -177,7 +178,7 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
             if (validarDatosQR(qrData)) {
                 Toast.makeText(this, "Autenticación QR exitosa", Toast.LENGTH_SHORT).show()
                 prestamoConfirmado = true
-                realizarPrestamo()
+                confirmarPrestamo() // Confirmar el préstamo
             } else {
                 Toast.makeText(this, "QR inválido", Toast.LENGTH_SHORT).show()
             }
@@ -185,7 +186,17 @@ class SolicitarPrestamoActivity : AppCompatActivity(), NfcAdapter.ReaderCallback
             super.onActivityResult(requestCode, resultCode, data)
         }
     }
+    private fun confirmarPrestamo() {
+        realizarPrestamo() // Realiza el préstamo
 
+        // Crear un Intent para ir a la MainActivity
+        val intent = Intent(this, MainActivity::class.java)
+        intent.putExtra("abrirListaHerramientas", true) // Enviar indicador para abrir la lista
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+
+        finish() // Finalizar esta actividad
+    }
     private fun validarDatosQR(qrData: String): Boolean {
         Log.d("QR_SCAN", "Comparando QR escaneado: $qrData con QR almacenado: $qrIdentificador")
         return qrData == qrIdentificador // Compara el QR escaneado con el almacenado

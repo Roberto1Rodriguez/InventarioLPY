@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">Balance</string>
+    <string name="ic_herramientas" />
+    <string name="prestamos" />
+    <string name="empleados_icon" />
     <string-array name="estados_herramienta">
         <item>Disponible</item>
         <item>Prestada</item>

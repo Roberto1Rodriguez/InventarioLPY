@@ -16,6 +16,7 @@ import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import java.io.ByteArrayOutputStream
 
 class EditarHerramientaActivity: AppCompatActivity() {
@@ -176,21 +177,36 @@ class EditarHerramientaActivity: AppCompatActivity() {
         bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)
         return stream.toByteArray()
     }
-
     private fun setFieldsEnabled(enabled: Boolean) {
+        val textColor = if (enabled) ContextCompat.getColor(this, R.color.white) else ContextCompat.getColor(this, R.color.gray)
+        val buttoncolor = if (enabled) ContextCompat.getColor(this, R.color.Botones) else ContextCompat.getColor(this, R.color.gray)
+
         etNombre.isEnabled = enabled
+        etNombre.setTextColor(textColor)
+
         etMarca.isEnabled = enabled
+        etMarca.setTextColor(textColor)
+
         etModelo.isEnabled = enabled
+        etModelo.setTextColor(textColor)
+
         etSerie.isEnabled = enabled
+        etSerie.setTextColor(textColor)
+
         etCodigoInterno.isEnabled = enabled
+        etCodigoInterno.setTextColor(textColor)
+
         etDescripcion.isEnabled = enabled
+        etDescripcion.setTextColor(textColor)
+
         etPrecio.isEnabled = enabled
+        etPrecio.setTextColor(textColor)
 
         // El spinner solo estará habilitado si está en modo edición y tiene opciones válidas
-        spinnerEstado.isEnabled =
-            enabled && spinnerEstado.adapter != null && spinnerEstado.adapter.count > 0
+        spinnerEstado.isEnabled = enabled && spinnerEstado.adapter != null && spinnerEstado.adapter.count > 0
 
         // Botón para cambiar foto solo habilitado en modo edición
         btnCambiarFoto.isEnabled = enabled
+        btnCambiarFoto.setBackgroundColor(buttoncolor)
     }
 }

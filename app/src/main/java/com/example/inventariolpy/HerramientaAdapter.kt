@@ -36,11 +36,10 @@ private val listener: (List<Herramienta>) -> Unit
 
     override fun onBindViewHolder(holder: HerramientaViewHolder, position: Int) {
         val herramienta = herramientas[position]
-        holder.bind(herramienta)
+        holder.bind(herramienta) // Solo pasamos el objeto herramienta
     }
 
     override fun getItemCount(): Int = herramientas.size
-
     inner class HerramientaViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBoxHerramienta)
         private val textViewNombre: TextView = itemView.findViewById(R.id.textViewNombreHerramienta)
@@ -48,7 +47,6 @@ private val listener: (List<Herramienta>) -> Unit
         private val imgHerramienta: ImageView = itemView.findViewById(R.id.imgHerramienta)
 
         fun bind(herramienta: Herramienta) {
-            // Configurar nombre y estado
             val codigo = herramienta.codigoInterno?.takeIf { it.isNotEmpty() } ?: "Sin código"
             val nombreCompleto = when (herramienta.estado) {
                 "Prestada" -> "${herramienta.nombre} (Código: $codigo) - Prestada"
@@ -58,19 +56,22 @@ private val listener: (List<Herramienta>) -> Unit
             }
             textViewNombre.text = nombreCompleto
 
-            // Configurar checkbox
+            checkBox.setOnCheckedChangeListener(null) // Evitar conflictos de eventos
+            checkBox.isChecked = herramienta.isSelected
             checkBox.isEnabled = herramienta.estado != "Prestada" && herramienta.estado != "Rota" && herramienta.estado != "Perdida"
-            checkBox.setOnCheckedChangeListener(null)
-            checkBox.isChecked = herramientasSeleccionadas.contains(herramienta)
 
             checkBox.setOnCheckedChangeListener { _, isChecked ->
+                herramienta.isSelected = isChecked
                 if (isChecked) {
-                    herramientasSeleccionadas.add(herramienta)
+                    if (!herramientasSeleccionadas.contains(herramienta)) {
+                        herramientasSeleccionadas.add(herramienta)
+                    }
                 } else {
                     herramientasSeleccionadas.remove(herramienta)
                 }
                 listener(herramientasSeleccionadas)
             }
+
 
             // Mostrar imagen de la herramienta
             val fotoByteArray = herramienta.fotoHerramienta

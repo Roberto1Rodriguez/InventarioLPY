@@ -1,37 +1,97 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:gravity="center">
 
-    <Button
+    <!-- Botón para herramientas -->
+    <LinearLayout
         android:id="@+id/btnListaHerramientas"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ver Lista de Herramientas"/>
+        android:layout_marginBottom="16dp"
+        android:background="@color/Botones"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/ic_herramientas"
+            android:src="@drawable/ic_herramientas"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Herramientas"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
 
     <!-- Botón para acceder a la lista de préstamos -->
-    <Button
+    <LinearLayout
         android:id="@+id/btnListaPrestamos"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ver Lista de Préstamos"/>
+        android:layout_marginBottom="16dp"
+        android:background="@color/Botones"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-  <!--  <Button
-        android:id="@+id/btnVerPagares"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ver Pagares"
-        android:layout_gravity="center_horizontal" />-->
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/prestamos"
+            android:src="@drawable/ic_prestamos"
+            app:tint="#FFFFFF" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Préstamos"
+            android:textAlignment="center"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
 
-    <Button
+    <!-- Botón para acceder a la lista de empleados -->
+    <LinearLayout
         android:id="@+id/btnVerEmpleados"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ver Lista de Empleados"
-        android:layout_gravity="center_horizontal" />
+        android:layout_marginBottom="16dp"
+        android:background="@color/Botones"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:contentDescription="@string/empleados_icon"
+            android:src="@drawable/ic_empleados"
+            app:tint="#FFFFFF" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Empleados"
+            android:textAlignment="center"
+            android:textColor="#F4F4F4"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+
 
 </LinearLayout>

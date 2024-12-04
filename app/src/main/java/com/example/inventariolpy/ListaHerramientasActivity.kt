@@ -1,4 +1,5 @@
 package com.example.inventariolpy
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.ContentValues
@@ -42,9 +43,38 @@ import java.util.Locale
         private val herramientas = mutableListOf<Herramienta>()
         override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
             super.onActivityResult(requestCode, resultCode, data)
-            if (requestCode == HerramientaAdapter.EDITAR_HERRAMIENTA_REQUEST_CODE && resultCode == RESULT_OK) {
-                actualizarListaHerramientas()
+            if (requestCode == SOLICITAR_PRESTAMO_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+                val intent = intent
+                finish()
+                startActivity(intent)
+                overridePendingTransition(0, 0) // Evitar transiciones
             }
+        }
+        override fun onSaveInstanceState(outState: Bundle) {
+            super.onSaveInstanceState(outState)
+            // Guardar las herramientas seleccionadas
+            outState.putParcelableArrayList(
+                "herramientasSeleccionadas",
+                ArrayList(herramientasSeleccionadas)
+            )
+        }
+
+        override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+            super.onRestoreInstanceState(savedInstanceState)
+            // Restaurar las herramientas seleccionadas
+            val seleccionadas = savedInstanceState.getParcelableArrayList<Herramienta>("herramientasSeleccionadas")
+            if (seleccionadas != null) {
+                herramientasSeleccionadas.clear()
+                herramientasSeleccionadas.addAll(seleccionadas)
+            }
+            sincronizarSeleccionEnAdaptador()
+        }
+
+        private fun sincronizarSeleccionEnAdaptador() {
+            herramientas.forEach { herramienta ->
+                herramienta.isSelected = herramientasSeleccionadas.any { it.id == herramienta.id }
+            }
+            adapter.notifyDataSetChanged()
         }
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
@@ -142,10 +172,24 @@ import java.util.Locale
 
             cargarListaHerramientas()
         }
-
+        private var debeActualizarLista = false // Indicador para actualizar la lista
         override fun onResume() {
             super.onResume()
-            cargarListaHerramientas()
+
+            if (debeActualizarLista) {
+                // Actualizar la lista de herramientas
+                actualizarListaHerramientas()
+
+                // Limpiar herramientas seleccionadas que ya no están disponibles
+                herramientasSeleccionadas.removeAll { herramienta ->
+                    herramienta.estado != "Disponible"
+                }
+
+                adapter.notifyDataSetChanged()
+
+                // Restablecer el indicador
+                debeActualizarLista = false
+            }
         }
         fun actualizarListaHerramientas() {
             val dbHelper = DatabaseHelper(this)
@@ -164,8 +208,12 @@ import java.util.Locale
             }
             cursor.close()
 
+            // Limpiar selección al actualizar la lista
+            herramientasSeleccionadas.clear()
+
             adapter.actualizarLista(herramientas)
         }
+
         private fun cargarListaHerramientas() {
             val dbHelper = DatabaseHelper(this)
             val cursor = dbHelper.obtenerHerramientasActivas()
@@ -183,27 +231,39 @@ import java.util.Locale
                     nombre = nombre,
                     estado = estado,
                     codigoInterno = codigoInterno,
-                    fotoHerramienta = foto // Asignar la imagen al objeto herramienta
+                    fotoHerramienta = foto,
+                    isSelected = herramientasSeleccionadas.any { it.id == id } // Sincronizar estado
                 )
                 herramientas.add(herramienta)
             }
             cursor.close()
 
-            adapter.notifyDataSetChanged()
+            adapter.actualizarLista(herramientas)
         }
-
         private fun filtrarHerramientas(query: String) {
-            val herramientasFiltradas = herramientas.filter {
-                it.nombre.contains(query, ignoreCase = true)
+            if (query.isEmpty()) {
+                herramientas.forEach { herramienta ->
+                    herramienta.isSelected = herramientasSeleccionadas.any {
+                        it.id == herramienta.id && it.estado == "Disponible"
+                    }
+                }
+                adapter.actualizarLista(herramientas) // Mostrar todas las herramientas
+            } else {
+                val herramientasFiltradas = herramientas.filter {
+                    it.nombre.contains(query, ignoreCase = true)
+                }
+                herramientasFiltradas.forEach { herramienta ->
+                    herramienta.isSelected = herramientasSeleccionadas.any {
+                        it.id == herramienta.id && it.estado == "Disponible"
+                    }
+                }
+                adapter.actualizarLista(herramientasFiltradas)
             }
-            adapter.actualizarLista(herramientasFiltradas)
         }
-
         private fun iniciarSolicitudPrestamo() {
             val dbHelper = DatabaseHelper(this)
             val db = dbHelper.readableDatabase
 
-            // Consulta para contar empleados activos
             val cursor = db.rawQuery(
                 "SELECT COUNT(*) AS cantidad FROM ${DatabaseHelper.TABLE_EMPLEADOS} WHERE ${DatabaseHelper.COL_ESTADO_EMPLEADO} != ?",
                 arrayOf("Inactivo")
@@ -216,16 +276,13 @@ import java.util.Locale
             cursor.close()
 
             if (empleadosActivos == 0) {
-                // Mostrar mensaje si no hay empleados activos
                 Toast.makeText(
                     this,
                     "No se puede realizar el préstamo porque no hay empleados activos.",
                     Toast.LENGTH_SHORT
                 ).show()
             } else {
-                // Continuar con la solicitud si hay empleados activos
-                val herramientasValidas =
-                    herramientasSeleccionadas.filter { it.estado == "Disponible" }
+                val herramientasValidas = herramientasSeleccionadas.filter { it.estado == "Disponible" }
                 if (herramientasValidas.isEmpty()) {
                     Toast.makeText(
                         this,
@@ -238,11 +295,15 @@ import java.util.Locale
                         "herramientasSeleccionadas",
                         ArrayList(herramientasValidas)
                     )
-                    startActivity(intent)
+                    startActivityForResult(intent, SOLICITAR_PRESTAMO_REQUEST_CODE) // Iniciar con resultado
+
+                    // Limpiar herramientas seleccionadas que serán prestadas
+                    herramientasSeleccionadas.removeAll(herramientasSeleccionadas)
+                    debeActualizarLista = true
+
                 }
             }
         }
-
         private fun generarReporteInventario() {
             val dbHelper = DatabaseHelper(this)
             val db = dbHelper.readableDatabase
@@ -394,7 +455,9 @@ import java.util.Locale
             startActivity(Intent.createChooser(intent, "Compartir reporte a través de"))
         }
 
-
+        companion object {
+            const val SOLICITAR_PRESTAMO_REQUEST_CODE = 1
+        }
     }
 
 
