@@ -1,0 +1,120 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/black"
+    android:padding="8dp"
+    android:layout_margin="6dp"
+    android:elevation="4dp">
+
+    <!-- Título del reporte -->
+    <TextView
+        android:id="@+id/tvTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ID: "
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:paddingBottom="4dp" />
+
+    <!-- Información general en dos columnas -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Columna izquierda -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvCodigo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Código Interno: "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvNombre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre: "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvEstado"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Estado: "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Columna derecha -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvMarca"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Marca: "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvModelo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Modelo: "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvPrecio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Precio: "
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Empleado y Fecha Préstamo -->
+    <TextView
+        android:id="@+id/tvEmpleado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Empleado: "
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        android:paddingTop="4dp" />
+
+    <TextView
+        android:id="@+id/tvFechaPrestamo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fecha Préstamo: "
+        android:textColor="@android:color/white"
+        android:textSize="12sp" />
+
+    <!-- Estado Activo/Inactivo -->
+    <TextView
+        android:id="@+id/tvActivo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Estado: "
+        android:textColor="@android:color/holo_green_light"
+        android:textStyle="italic"
+        android:textSize="12sp"
+        android:paddingTop="4dp" />
+</LinearLayout>

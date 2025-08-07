@@ -1,0 +1,78 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <!-- Campo de búsqueda -->
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:queryHint="Buscar herramienta..." />
+
+    <!-- CheckBoxes para filtros -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <CheckBox
+            android:id="@+id/checkBoxPrestadas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Prestadas" />
+
+        <CheckBox
+            android:id="@+id/checkBoxDisponibles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Disponibles" />
+
+        <CheckBox
+            android:id="@+id/checkBoxRotasPerdidas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Rotas/Perdidas" />
+        <CheckBox
+        android:id="@+id/checkBoxInactivas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Inactivas" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Reporte de Inventario"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:padding="16dp" />
+
+                <TableLayout
+                    android:id="@+id/tableLayoutReporte"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:stretchColumns="*" />
+            </LinearLayout>
+        </HorizontalScrollView>
+    </ScrollView>
+</LinearLayout>

@@ -1,0 +1,31 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <!-- Imagen del empleado -->
+    <ImageView
+        android:id="@+id/imgFotoEmpleado"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginEnd="8dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_placeholder" />
+
+    <!-- Nombre del empleado -->
+    <TextView
+        android:id="@+id/tvNombreEmpleado"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Nombre del Empleado"
+        android:textStyle="bold"
+        android:textSize="16sp"/>
+
+    <!-- RadioButton para seleccionar un empleado -->
+    <RadioButton
+        android:id="@+id/radioSeleccionarEmpleado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</LinearLayout>

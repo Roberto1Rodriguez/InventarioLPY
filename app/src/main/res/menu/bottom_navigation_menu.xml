@@ -1,0 +1,21 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+
+
+    <item
+        android:id="@+id/action_agregar_herramienta"
+        android:title=""
+        android:icon="@drawable/plus"
+    app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_solicitar_prestamo"
+        android:title=""
+        android:icon="@drawable/ic_prestamos"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_generar_reporte"
+        android:title=""
+        android:icon="@drawable/report"
+    app:showAsAction="ifRoom" />
+</menu>

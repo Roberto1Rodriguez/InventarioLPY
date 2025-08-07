@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/dialog_background">
+
+    <TextView
+        android:id="@+id/tvDemoMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tiempo de demo agotado."
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:gravity="center"
+        android:padding="10dp" />
+
+    <!-- Campo oculto para ingresar la clave -->
+    <EditText
+        android:id="@+id/etSecretKey"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Clave secreta"
+        android:visibility="invisible" />
+
+</LinearLayout>
